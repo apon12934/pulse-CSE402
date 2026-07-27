@@ -12,10 +12,15 @@
     *   Integrate the Gemini API service adapter into the backend.
     *   Write the system prompts to parse user chat input (energy levels, flexible goals).
     *   Implement the scheduling algorithm to generate the initial daily timeline.
-*   **Phase 4: Web UI & Execution Tracking**
-    *   Build the Next.js frontend dashboard using the predefined Tailwind design system.
-    *   Implement the active task countdown timer.
+*   **Phase 4A: UI Kernel (Component Library)**
+    *   Build the `/packages/ui` shared component library housing all primitives (Button, Dropdown, Modal, Tooltip, TextInput, Card, Toast, ProgressBar, StatusBadge, etc.).
+    *   Define centralized animation tokens, hover/focus/press interaction patterns, and transition curves.
+    *   Ensure every primitive exposes a variant-driven API — no visual customization outside the kernel.
+*   **Phase 4B: Web UI & Execution Tracking**
+    *   Build the Next.js frontend dashboard by composing exclusively from `/packages/ui` primitives.
+    *   Implement the active task countdown timer using kernel animation standards.
     *   Wire up the "Need More Time" button to trigger the backend "Domino Effect" recalculation route.
+    *   Zero inline style overrides on kernel components in page-level code.
 *   **Phase 5: Native Android Expansion (Future)**
     *   Consume the existing Node.js API endpoints in the native Kotlin environment.
     *   Implement local Room database caching and background services for lock-screen execution tracking.

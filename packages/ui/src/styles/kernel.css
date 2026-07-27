@@ -1,0 +1,91 @@
+/*
+ * ┌──────────────────────────────────────────────┐
+ * │  @pulse/ui — Kernel Stylesheet               │
+ * │  Centralized animation tokens, transitions,  │
+ * │  and interaction patterns.                    │
+ * └──────────────────────────────────────────────┘
+ *
+ * All hover effects, focus rings, transitions, and
+ * micro-animations are defined here. No consuming
+ * page may override these with inline styles or
+ * local @keyframes.
+ */
+
+/* ─── Design Tokens ────────────────────────────── */
+
+:root {
+  /* Surfaces */
+  --pulse-surface-floor: #000000;
+  --pulse-surface-module: #121212;
+  --pulse-surface-overlay: #1a1a1a;
+  --pulse-surface-hover: #1a1a1a;
+
+  /* Primary */
+  --pulse-primary: #ffff00;
+  --pulse-on-primary: #000000;
+
+  /* Typography */
+  --pulse-text-primary: #ffffff;
+  --pulse-text-secondary: #999999;
+  --pulse-text-muted: #666666;
+
+  /* Borders */
+  --pulse-border-default: #262626;
+  --pulse-border-strong: #333333;
+  --pulse-border-focus: #ffff00;
+
+  /* Status */
+  --pulse-status-error: #ff4444;
+  --pulse-status-success: #44ff44;
+
+  /* Transitions */
+  --pulse-transition-color: 150ms ease-out;
+  --pulse-transition-transform: 200ms ease;
+  --pulse-transition-overlay-in: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  --pulse-transition-overlay-out: 150ms ease-in;
+  --pulse-transition-page: 250ms ease-in-out;
+
+  /* Spacing */
+  --pulse-unit: 4px;
+  --pulse-radius: 0px;
+}
+
+/* ─── Global Focus Ring ────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--pulse-border-focus);
+  outline-offset: 2px;
+}
+
+/* ─── Keyframes ────────────────────────────────── */
+
+@keyframes pulse-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes pulse-progress-shrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}

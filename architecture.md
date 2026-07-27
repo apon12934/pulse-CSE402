@@ -5,6 +5,7 @@ API-First decoupled architecture using a Monorepo strategy (Turborepo). The back
 *   `/apps/api`: Node.js / Express backend (API Gateway).
 *   `/apps/web`: Next.js web frontend.
 *   `/apps/android`: Native Kotlin project (for Antigravity Android deployment).
+*   `/packages/ui`: **The UI Kernel** — a shared, OS-style component library housing every reusable UI primitive (dropdowns, modals, tooltips, buttons, inputs, status chips, progress bars, toasts). All animations, hover behaviors, focus states, and interaction patterns are defined here once. The web frontend (and any future client) consumes these components directly; it never re-implements a primitive inline.
 *   `/packages/types`: Shared TypeScript definitions across the JS/TS ecosystem.
 
 **Tech Stack:**
