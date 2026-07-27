@@ -1,0 +1,129 @@
+// ─────────────────────────────────────────────────────────────
+//  Pulse — Prisma Schema
+//  Database: TiDB Serverless (MySQL-compatible)
+//  ORM:      Prisma
+// ─────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────
+
+/// Distinguishes immovable events (Anchor) from flexible tasks (Fluid).
+enum TaskType {
+  Anchor
+  Fluid
+}
+
+/// Lifecycle status of a scheduled task.
+enum TaskStatus {
+  Upcoming
+  Running
+  Completed
+  Overdue
+}
+
+/// User-reported energy state for AI scheduling optimization.
+enum EnergyLevel {
+  High
+  Medium
+  Low
+}
+
+/// Account tier for future feature gating.
+enum UserTier {
+  Free
+  Pro
+}
+
+// ─── Models ───────────────────────────────────────────────────
+
+/// Core user account — isolated, multi-tenant environment.
+model User {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(100)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  tier      UserTier @default(Free)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tasks         Task[]
+  taskBlocks    TaskBlock[]
+  dailyRoutines DailyRoutine[]
+
+  @@map("users")
+}
+
+/// A single schedulable unit — either an Anchor (fixed) or Fluid (flexible).
+model Task {
+  id          String      @id @default(cuid())
+  userId      String      @map("user_id")
+  title       String      @db.VarChar(255)
+  description String?     @db.Text
+  type        TaskType
+  status      TaskStatus  @default(Upcoming)
+  energyLevel EnergyLevel @default(Medium) @map("energy_level")
+  priority    Int         @default(0)
+  startTime   DateTime    @map("start_time")
+  endTime     DateTime    @map("end_time")
+  taskBlockId String?     @map("task_block_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskBlock TaskBlock? @relation(fields: [taskBlockId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, startTime])
+  @@index([taskBlockId])
+  @@map("tasks")
+}
+
+/// Composite grouping of tasks — supports the Composite pattern
+/// for organizing related tasks under named blocks.
+model TaskBlock {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  blockName   String   @map("block_name") @db.VarChar(255)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@index([userId])
+  @@map("task_blocks")
+}
+
+/// Daily aggregate snapshot — tracks Anchor/Fluid distribution
+/// and completion metrics for a user's day.
+model DailyRoutine {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  date           DateTime @db.Date
+  totalAnchors   Int      @default(0) @map("total_anchors")
+  totalFluid     Int      @default(0) @map("total_fluid")
+  completedTasks Int      @default(0) @map("completed_tasks")
+  skippedTasks   Int      @default(0) @map("skipped_tasks")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("daily_routines")
+}

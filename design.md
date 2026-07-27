@@ -166,3 +166,54 @@ The shape language is strictly **geometric and sharp**.
 - **Cards/Modules:** Use #121212 backgrounds. Headers within cards should be separated by a 1px horizontal rule.
 - **Execution Progress:** Represent AI processing using a solid, non-rounded progress bar in #FFFF00. Use stepped increments rather than smooth animations to emphasize "calculated" progress.
 - **Data Grids:** High-density tables with subtle row-hover highlights (#1A1A1A). Columns must be clearly delineated by 1px vertical rules.
+
+## Component Architecture (UI Kernel)
+
+The UI follows an **operating-system-style architecture**. Every interactive element is a centralized primitive defined once inside `/packages/ui` and consumed across all pages and features. No page or feature may create its own ad-hoc dropdown, modal, tooltip, or button variant — all must compose from the kernel.
+
+**Primitive Categories:**
+
+| Category | Primitives |
+|---|---|
+| **Controls** | Button, IconButton, ToggleSwitch, Slider |
+| **Inputs** | TextInput, TextArea, SearchField, TimeInput |
+| **Selection** | Dropdown (custom), Checkbox, RadioGroup, ChipSelect |
+| **Overlays** | Modal, Drawer, Tooltip, ContextMenu, Toast |
+| **Feedback** | ProgressBar, Spinner, Skeleton, StatusBadge |
+| **Layout** | Card, Divider, Container, Stack, Grid |
+| **Navigation** | NavItem, Tabs, Breadcrumb, CommandPalette |
+
+**Key Principles:**
+
+1.  **Single Source of Truth:** Each primitive lives in one file. To change how every dropdown in the app looks or behaves, you edit one component — the change cascades globally.
+2.  **Variant-Driven API:** Primitives expose variants via props (e.g., `<Button variant="primary" />`, `<Button variant="ghost" />`). New visual styles are added as variants, never as new components.
+3.  **Composition Over Customization:** Complex UI (e.g., a task card with a timer, status chip, and action menu) is assembled by composing kernel primitives. Styles must not leak between primitives.
+4.  **Zero Inline Overrides:** No `style={}` or one-off class overrides on kernel components in consuming code. If a new visual need arises, it is added as a variant or token inside the kernel itself.
+
+## Interaction & Animation Standards
+
+All interaction behaviors are defined centrally in the UI Kernel to guarantee identical feel across the entire application.
+
+**Hover:**
+-   **Controls & Cards:** Background shifts one elevation level up (e.g., `#121212` → `#1A1A1A`). Transition: `150ms ease-out`.
+-   **Text Links / Nav Items:** Underline slides in from left via `scaleX` transform. Color shifts to `#FFFF00`.
+-   **Icon Buttons:** Subtle scale pulse (`scale(1.08)`) with `120ms ease`.
+
+**Focus:**
+-   All focusable elements receive a `2px solid #FFFF00` outline with `2px offset`. Never remove the default focus ring without replacing it.
+
+**Press / Active:**
+-   Buttons invert colors on press (primary: yellow bg → black bg, white text). No opacity changes — use color inversion exclusively.
+-   Scale down to `scale(0.97)` on `:active` with `80ms ease`.
+
+**Transitions (Global Defaults):**
+-   **Property transitions:** `150ms ease-out` for color/background, `200ms ease` for transform/layout.
+-   **Page/View transitions:** Fade crossfade `250ms ease-in-out`.
+-   **Overlay entry:** Slide-up `200ms cubic-bezier(0.16, 1, 0.3, 1)` + fade.
+-   **Overlay exit:** Fade-out `150ms ease-in`.
+
+**Micro-Animations:**
+-   **Toast notifications:** Slide in from top-right, auto-dismiss with a shrinking progress bar.
+-   **Skeleton loaders:** Subtle shimmer sweep (left-to-right gradient animation, `1.5s infinite`).
+-   **Progress bars:** Stepped increments (not smooth) — each step snaps after a calculated delay to reinforce the "AI is computing" feel.
+-   **Countdown timer digit changes:** Flip/roll transition on individual digits.
