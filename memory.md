@@ -84,3 +84,11 @@
 *   Config page created: IDENTITY.SYS profile card, INTEGRATION_PARAMS (Gemini API key + auto-reschedule strategy), SYNC_PROTOCOLS section, SAVE CONFIGURATIONS button.
 *   Added `/chat` route (full-page Gemini Core view) and `/config` route (replaced `/settings`).
 *   Installed `lucide-react` for consistent iconography across all pages.
+
+**[2026-07-28] [Antigravity / Gemini 3.1 Pro] Phase 4C: Frontend API Wiring**
+*   Introduced `zustand` to manage global authentication state (`user`, `token`, `isLoading`).
+*   Created `ProtectedRoute` wrapper and a unified `/login` & registration view.
+*   Wired Dashboard (`page.tsx`) to fetch daily tasks from `/api/tasks` and cascade them down to `ActiveTask.tsx` (using real countdown mechanics to the `endTime`) and `UpcomingPipeline.tsx`.
+*   Wired `Timeline` view to fetch scheduled blocks from the API and connected the "GENERATE AI ROUTINE" button to `/api/schedule/generate`.
+*   Wired `AiChatPanel.tsx` and the full `/chat` route to send directives to `/api/schedule/chat`, maintaining local message state.
+*   Wired Config page (`/config`) to use `localStorage` for Gemini API Key and Reschedule strategy persistence pending future DB migrations.

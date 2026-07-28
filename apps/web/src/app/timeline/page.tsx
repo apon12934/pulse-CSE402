@@ -1,23 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, cn } from '@pulse/ui';
 import { Lock, ChevronLeft, ChevronRight, GripVertical, Sparkles } from 'lucide-react';
+import { apiGet, apiPost } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 
 /* ─── Time Grid Config ─────────────────────────── */
 const HOUR_START = 8;
-const HOUR_END = 20;
+const HOUR_END = 23;
 const HOURS = Array.from({ length: HOUR_END - HOUR_START + 1 }, (_, i) => HOUR_START + i);
 const HOUR_HEIGHT = 80; // px per hour
 
-function timeToOffset(hour: number, minute: number): number {
-  return (hour - HOUR_START + minute / 60) * HOUR_HEIGHT;
+function timeToOffset(dateString: string): number {
+  const d = new Date(dateString);
+  const h = d.getHours();
+  const m = d.getMinutes();
+  return (h - HOUR_START + m / 60) * HOUR_HEIGHT;
 }
 
-function timeToHeight(startH: number, startM: number, endH: number, endM: number): number {
-  const startMin = startH * 60 + startM;
-  const endMin = endH * 60 + endM;
-  return ((endMin - startMin) / 60) * HOUR_HEIGHT;
+function timeToHeight(startStr: string, endStr: string): number {
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  return ((end.getTime() - start.getTime()) / 3600000) * HOUR_HEIGHT;
 }
 
 function formatHour(h: number): string {
@@ -26,70 +31,59 @@ function formatHour(h: number): string {
   return `${display.toString().padStart(2, '0')}:00 ${ampm}`;
 }
 
-/* ─── Block Data ───────────────────────────────── */
-type TimeBlock = {
-  title: string;
-  type: 'Anchor' | 'Fluid';
-  startH: number;
-  startM: number;
-  endH: number;
-  endM: number;
-  room?: string;
-};
-
-const BLOCKS: TimeBlock[] = [
-  {
-    title: 'Fairway Aquatica Layout Revision',
-    type: 'Fluid',
-    startH: 10,
-    startM: 0,
-    endH: 12,
-    endM: 0,
-  },
-  {
-    title: 'MAT229',
-    type: 'Anchor',
-    startH: 12,
-    startM: 35,
-    endH: 13,
-    endM: 45,
-    room: '510',
-  },
-  {
-    title: 'CSE323',
-    type: 'Anchor',
-    startH: 13,
-    startM: 50,
-    endH: 15,
-    endM: 0,
-    room: '510',
-  },
-  {
-    title: 'EEE206',
-    type: 'Anchor',
-    startH: 15,
-    startM: 5,
-    endH: 17,
-    endM: 30,
-    room: '513',
-  },
-];
-
-/* ─── Format Time Range ────────────────────────── */
-function formatTimeRange(b: TimeBlock): string {
-  const fmt = (h: number, m: number) => {
+function formatTimeRange(startStr: string, endStr: string): string {
+  const fmt = (d: Date) => {
+    let h = d.getHours();
+    const m = d.getMinutes();
     const ampm = h >= 12 ? 'PM' : 'AM';
-    const dh = h > 12 ? h - 12 : h === 0 ? 12 : h;
-    return `${dh}:${m.toString().padStart(2, '0')} ${ampm}`;
+    h = h > 12 ? h - 12 : h === 0 ? 12 : h;
+    return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
   };
-  return `${fmt(b.startH, b.startM)} — ${fmt(b.endH, b.endM)}`;
+  return `${fmt(new Date(startStr))} — ${fmt(new Date(endStr))}`;
 }
 
 /* ─── Page Component ───────────────────────────── */
 export default function TimelinePage() {
-  const [dateLabel] = useState('Sunday, April 5th');
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { token } = useAuthStore();
+
+  const fetchTasks = async (date: Date) => {
+    if (!token) return;
+    try {
+      const dateStr = date.toISOString().split('T')[0];
+      const res = await apiGet<{ tasks: any[] }>(`/api/tasks?date=${dateStr}`);
+      setTasks(res.tasks || []);
+    } catch (err) {
+      console.error('Failed to fetch tasks:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks(currentDate);
+  }, [currentDate, token]);
+
+  const handleGenerate = async () => {
+    if (!token) return;
+    setIsGenerating(true);
+    try {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const res = await apiPost<{ schedule: any[] }>('/api/schedule/generate', {
+        date: dateStr,
+        energyLevel: 'Medium'
+      });
+      // Refresh tasks
+      await fetchTasks(currentDate);
+    } catch (err) {
+      console.error('Failed to generate schedule:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const totalHeight = (HOUR_END - HOUR_START) * HOUR_HEIGHT;
+  const dateLabel = currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
     <div className="flex flex-col h-full gap-6">
@@ -107,20 +101,34 @@ export default function TimelinePage() {
         <div className="flex items-center gap-4">
           {/* Date Selector */}
           <div className="flex items-center gap-2 border border-[#262626] px-3 py-2">
-            <button className="text-[#888] hover:text-[#FFFF00] transition-colors duration-150">
+            <button 
+              className="text-[#888] hover:text-[#FFFF00] transition-colors duration-150"
+              onClick={() => {
+                const prev = new Date(currentDate);
+                prev.setDate(prev.getDate() - 1);
+                setCurrentDate(prev);
+              }}
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <span className="font-mono text-[12px] uppercase tracking-[0.05em] text-white min-w-[160px] text-center">
               {dateLabel}
             </span>
-            <button className="text-[#888] hover:text-[#FFFF00] transition-colors duration-150">
+            <button 
+              className="text-[#888] hover:text-[#FFFF00] transition-colors duration-150"
+              onClick={() => {
+                const next = new Date(currentDate);
+                next.setDate(next.getDate() + 1);
+                setCurrentDate(next);
+              }}
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <Button variant="primary" size="md">
+          <Button variant="primary" size="md" onClick={handleGenerate} disabled={isGenerating}>
             <Sparkles className="w-4 h-4 mr-2" />
-            GENERATE AI ROUTINE
+            {isGenerating ? 'GENERATING...' : 'GENERATE AI ROUTINE'}
           </Button>
         </div>
       </div>
@@ -129,7 +137,7 @@ export default function TimelinePage() {
       <div className="h-px w-full bg-[#FFFF00] shrink-0" />
 
       {/* ── Grid ──────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
         <div className="flex" style={{ minHeight: totalHeight }}>
           {/* Hour labels column */}
           <div className="w-20 shrink-0 relative" style={{ height: totalHeight }}>
@@ -158,16 +166,19 @@ export default function TimelinePage() {
             ))}
 
             {/* Time Blocks */}
-            {BLOCKS.map((block, i) => {
-              const top = timeToOffset(block.startH, block.startM);
-              const height = timeToHeight(block.startH, block.startM, block.endH, block.endM);
+            {tasks.map((block) => {
+              const top = timeToOffset(block.startTime);
+              const height = timeToHeight(block.startTime, block.endTime);
               const isFluid = block.type === 'Fluid';
+
+              // Prevent rendering blocks outside visible hours
+              if (top < 0 || top > totalHeight) return null;
 
               return (
                 <div
-                  key={i}
+                  key={block.id}
                   className="absolute left-3 right-3"
-                  style={{ top, height }}
+                  style={{ top, height: Math.max(height, 40) }} // min height
                 >
                   <div
                     className={cn(
@@ -185,12 +196,9 @@ export default function TimelinePage() {
                           isFluid ? 'text-[#FFFF00]' : 'text-[#999]',
                         )}>
                           {block.title}
-                          {block.room && (
-                            <span className="text-[#555] font-normal"> ({block.room})</span>
-                          )}
                         </span>
                         <span className="font-mono text-[10px] text-[#555] uppercase tracking-[0.05em]">
-                          {formatTimeRange(block)}
+                          {formatTimeRange(block.startTime, block.endTime)}
                         </span>
                       </div>
 
@@ -212,7 +220,7 @@ export default function TimelinePage() {
                     </div>
 
                     {/* Bottom accent bar for Fluid blocks */}
-                    {isFluid && (
+                    {isFluid && height > 60 && (
                       <div className="flex items-center gap-2 mt-auto">
                         <div className="h-px flex-1 bg-[#FFFF00]/20" />
                         <span className="font-mono text-[9px] text-[#FFFF00]/50 uppercase tracking-widest">
