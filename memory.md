@@ -35,4 +35,24 @@
 *   `POST /api/schedule/reschedule` — Domino-effect rescheduler (task overrun).
 *   `POST /api/schedule/chat` — Natural language → structured tasks.
 
-*(Note to AI Agent: Continuously update this block as you complete files and hit milestones. Never start a new phase without marking the previous one complete.)*
+---
+
+## 📜 Execution History & Changelog
+*(Note to AI Agent: NEVER delete from this section. ONLY append new entries chronologically. Every entry MUST begin with the current date and your specific model version. This is the permanent historical context.)*
+
+**[2026-07-28] [Antigravity / Gemini 1.5 Pro] Phase 1: Monorepo Foundation (Completed)**
+*   Scaffolded Turborepo v2 with `apps/api`, `apps/web`, `apps/android`, `packages/ui`, and `packages/types`.
+*   *Developer Note/Pivot:* Prisma 7 required a shift from schema-based `DATABASE_URL` to using `prisma.config.ts`. Adapted architecture to support the new Prisma 7 configuration model and successfully deployed the schema to TiDB Serverless.
+*   Implemented strict CUIDs for database primary keys to ensure clean routing later.
+
+**[2026-07-28] [Antigravity / Gemini 1.5 Pro] Phase 2: Authentication & Core API (Completed)**
+*   Built Express 5 server with stateless JWT authentication (7-day expiry).
+*   Established standard AppError pattern for global, structured JSON error handling.
+*   *Developer Note:* Ensured all CRUD operations on the `tasks` endpoints are strictly scoped to the authenticated `userId` extracted from the JWT middleware.
+*   Integrated Zod for robust input validation on all mutation endpoints.
+
+**[2026-07-28] [Antigravity / Gemini 1.5 Pro] Phase 3: The Gemini AI Engine (Completed)**
+*   Integrated Gemini 2.5 Flash via the `@google/genai` SDK.
+*   Engineered three distinct prompt pipelines: Schedule Generation, Domino Rescheduling, and Chat Parsing.
+*   *Developer Note:* Enforced structured JSON output mode with a low temperature (`0.2`) across all AI calls to guarantee deterministic, machine-readable data structures for the frontend.
+*   Successfully baked energy-level optimization parameters into the core scheduling prompts.
