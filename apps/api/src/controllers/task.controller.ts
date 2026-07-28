@@ -1,0 +1,175 @@
+import type { Request, Response } from "express";
+import { prisma } from "../utils/prisma.js";
+import { AppError } from "../utils/errors.js";
+
+/**
+ * POST /api/tasks
+ * Create a new task for the authenticated user.
+ */
+export async function createTask(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const { title, description, type, energyLevel, priority, startTime, endTime, taskBlockId } =
+    req.body as {
+      title: string;
+      description?: string | null;
+      type: "Anchor" | "Fluid";
+      energyLevel?: "High" | "Medium" | "Low";
+      priority?: number;
+      startTime: string;
+      endTime: string;
+      taskBlockId?: string | null;
+    };
+
+  // If a taskBlockId is provided, verify it belongs to this user
+  if (taskBlockId) {
+    const block = await prisma.taskBlock.findFirst({
+      where: { id: taskBlockId, userId },
+    });
+    if (!block) {
+      throw new AppError(404, "Task block not found or does not belong to you");
+    }
+  }
+
+  const task = await prisma.task.create({
+    data: {
+      userId,
+      title,
+      description: description ?? null,
+      type,
+      energyLevel: energyLevel ?? "Medium",
+      priority: priority ?? 0,
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      taskBlockId: taskBlockId ?? null,
+    },
+  });
+
+  res.status(201).json({ task });
+}
+
+/**
+ * GET /api/tasks
+ * List all tasks for the authenticated user.
+ * Supports optional query filters: ?status=Running&type=Anchor&date=2025-07-28
+ */
+export async function listTasks(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+
+  const where: Record<string, unknown> = { userId };
+
+  const status = typeof req.query["status"] === "string" ? req.query["status"] : undefined;
+  const type = typeof req.query["type"] === "string" ? req.query["type"] : undefined;
+  const date = typeof req.query["date"] === "string" ? req.query["date"] : undefined;
+
+  if (status) where["status"] = status;
+  if (type) where["type"] = type;
+
+  // Filter tasks by a specific date (start of day to end of day)
+  if (date) {
+    const dayStart = new Date(date);
+    const dayEnd = new Date(date);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+    where["startTime"] = { gte: dayStart, lt: dayEnd };
+  }
+
+  const tasks = await prisma.task.findMany({
+    where,
+    orderBy: { startTime: "asc" },
+    include: { taskBlock: { select: { id: true, blockName: true } } },
+  });
+
+  res.json({ tasks, count: tasks.length });
+}
+
+/**
+ * GET /api/tasks/:id
+ * Get a single task by id (scoped to authenticated user).
+ */
+export async function getTask(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const id = req.params["id"] as string;
+
+  const task = await prisma.task.findFirst({
+    where: { id, userId },
+    include: { taskBlock: { select: { id: true, blockName: true } } },
+  });
+
+  if (!task) {
+    throw new AppError(404, "Task not found");
+  }
+
+  res.json({ task });
+}
+
+/**
+ * PATCH /api/tasks/:id
+ * Partially update a task (scoped to authenticated user).
+ */
+export async function updateTask(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const id = req.params["id"] as string;
+
+  // Verify ownership
+  const existing = await prisma.task.findFirst({ where: { id, userId } });
+  if (!existing) {
+    throw new AppError(404, "Task not found");
+  }
+
+  const { title, description, type, status, energyLevel, priority, startTime, endTime, taskBlockId } =
+    req.body as {
+      title?: string;
+      description?: string | null;
+      type?: "Anchor" | "Fluid";
+      status?: "Upcoming" | "Running" | "Completed" | "Overdue";
+      energyLevel?: "High" | "Medium" | "Low";
+      priority?: number;
+      startTime?: string;
+      endTime?: string;
+      taskBlockId?: string | null;
+    };
+
+  // If switching task blocks, verify new block belongs to user
+  if (taskBlockId) {
+    const block = await prisma.taskBlock.findFirst({
+      where: { id: taskBlockId, userId },
+    });
+    if (!block) {
+      throw new AppError(404, "Task block not found or does not belong to you");
+    }
+  }
+
+  const task = await prisma.task.update({
+    where: { id: id as string },
+    data: {
+      ...(title !== undefined && { title }),
+      ...(description !== undefined && { description }),
+      ...(type !== undefined && { type }),
+      ...(status !== undefined && { status }),
+      ...(energyLevel !== undefined && { energyLevel }),
+      ...(priority !== undefined && { priority }),
+      ...(startTime !== undefined && { startTime: new Date(startTime) }),
+      ...(endTime !== undefined && { endTime: new Date(endTime) }),
+      ...(taskBlockId !== undefined && { taskBlockId }),
+    },
+  });
+
+  res.json({ task });
+}
+
+/**
+ * DELETE /api/tasks/:id
+ * Delete a task (scoped to authenticated user).
+ */
+export async function deleteTask(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const id = req.params["id"] as string;
+
+  const existing = await prisma.task.findFirst({ where: { id, userId } });
+  if (!existing) {
+    throw new AppError(404, "Task not found");
+  }
+
+  await prisma.task.delete({ where: { id } });
+
+  res.status(204).send();
+}
