@@ -1,41 +1,74 @@
-import { Card, StatusChip, cn } from '@pulse/ui';
+import { StatusChip, cn } from '@pulse/ui';
+import { Lock, GripVertical } from 'lucide-react';
 
-export function UpcomingPipeline() {
-  const schedule = [
-    { time: '11:00 — 12:30', title: 'MAT229 Lecture', status: 'completed', type: 'ANCHOR' },
-    { time: '13:00 — 14:30', title: 'CSE323 Lab', status: 'running', type: 'ANCHOR' },
-    { time: '14:30 — 15:00', title: 'Lunch Break', status: 'upcoming', type: 'FLUID' },
-    { time: '15:00 — 16:30', title: 'EEE206 Tutorial', status: 'upcoming', type: 'ANCHOR' },
-    { time: '16:30 — 18:00', title: 'Algorithm Practice', status: 'upcoming', type: 'FLUID' },
-    { time: '20:00 — 22:00', title: 'Physics Assignment', status: 'upcoming', type: 'FLUID' },
-  ] as const;
+interface UpcomingPipelineProps {
+  tasks: any[];
+}
+
+export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
+  const formatTime = (isoString: string) => {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
 
   return (
-    <Card header="UPCOMING PIPELINE" className="w-full h-full">
-      <div className="flex flex-col mt-4">
-        {schedule.map((task, i) => (
-          <div key={i} className="flex flex-col">
-            {i > 0 && <div className="h-[1px] w-full bg-[#262626]" />}
-            <div className="flex items-center gap-4 py-4 group hover:bg-[#1A1A1A] transition-none px-2 -mx-2">
-              <div className="w-32 flex-shrink-0 text-[#A3A3A3] font-mono text-sm">
-                {task.time}
-              </div>
-              <div className="flex-1 text-white font-medium text-base truncate">
-                {task.title}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={cn(
-                  "font-mono text-[10px] px-1.5 py-0.5 uppercase tracking-wider",
-                  task.type === 'ANCHOR' ? "text-[#FFFF00] bg-[#FFFF00]/10" : "text-[#A3A3A3] bg-[#262626]"
+    <div className="w-full h-full">
+      <div className="flex items-center gap-4 mb-4">
+        <h2 className="text-[#A3A3A3] font-mono text-[11px] uppercase tracking-[0.3em]">
+          UPCOMING PIPELINE
+        </h2>
+        <div className="h-[1px] flex-1 bg-[#262626]" />
+      </div>
+
+      <div className="flex flex-col">
+        {tasks.length === 0 && (
+          <div className="py-4 text-[#666] font-mono text-sm">No upcoming tasks today.</div>
+        )}
+        {tasks.map((task, i) => {
+          const isCompleted = task.status === 'Completed';
+          const isAnchor = task.type === 'Anchor';
+
+          return (
+            <div key={task.id} className="flex flex-col">
+              {i > 0 && <div className="h-[1px] w-full bg-[#262626]" />}
+              <div className={cn(
+                "flex items-center gap-4 py-4 group hover:bg-[#1A1A1A] transition-none px-4 -mx-4",
+                isCompleted && "opacity-50"
+              )}>
+                <div className={cn(
+                  "w-16 flex-shrink-0 font-mono text-sm",
+                  isCompleted ? "text-[#666]" : "text-[#A3A3A3]"
                 )}>
-                  {task.type}
-                </span>
-                <StatusChip status={task.status as any} />
+                  {formatTime(task.startTime)}
+                </div>
+                
+                <div className={cn(
+                  "flex-1 font-medium text-base truncate",
+                  isCompleted ? "text-[#888]" : "text-white"
+                )}>
+                  {task.title}
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <span className={cn(
+                    "font-mono text-[10px] px-1.5 py-0.5 uppercase tracking-wider border",
+                    isAnchor 
+                      ? "text-[#FFFF00] bg-[#FFFF00]/10 border-[#FFFF00]/20" 
+                      : "text-[#A3A3A3] bg-[#262626] border-transparent"
+                  )}>
+                    {task.type}
+                  </span>
+                  {isAnchor ? (
+                    <Lock className="w-4 h-4 text-[#666]" />
+                  ) : (
+                    <GripVertical className="w-4 h-4 text-[#666]" />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-    </Card>
+    </div>
   );
 }

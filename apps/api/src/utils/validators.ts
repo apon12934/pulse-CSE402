@@ -13,6 +13,11 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+export const updateProfileSchema = z.object({
+  geminiApiKey: z.string().optional().nullable(),
+  rescheduleStrategy: z.string().optional(),
+});
+
 // ─── Tasks ─────────────────────────────────────────────────
 
 export const createTaskSchema = z.object({

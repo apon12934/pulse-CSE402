@@ -3,6 +3,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import scheduleRoutes from "./routes/schedule.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import { errorHandler } from "./utils/errors.js";
 
 const app = express();
@@ -21,6 +22,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/user", userRoutes);
 
 // ─── Error Handler (must be last) ─────────────────────────
 app.use(errorHandler);

@@ -30,6 +30,8 @@ export type UserMinAggregateOutputType = {
   email: string | null
   password: string | null
   tier: $Enums.UserTier | null
+  geminiApiKey: string | null
+  rescheduleStrategy: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +42,8 @@ export type UserMaxAggregateOutputType = {
   email: string | null
   password: string | null
   tier: $Enums.UserTier | null
+  geminiApiKey: string | null
+  rescheduleStrategy: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +54,8 @@ export type UserCountAggregateOutputType = {
   email: number
   password: number
   tier: number
+  geminiApiKey: number
+  rescheduleStrategy: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -62,6 +68,8 @@ export type UserMinAggregateInputType = {
   email?: true
   password?: true
   tier?: true
+  geminiApiKey?: true
+  rescheduleStrategy?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +80,8 @@ export type UserMaxAggregateInputType = {
   email?: true
   password?: true
   tier?: true
+  geminiApiKey?: true
+  rescheduleStrategy?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +92,8 @@ export type UserCountAggregateInputType = {
   email?: true
   password?: true
   tier?: true
+  geminiApiKey?: true
+  rescheduleStrategy?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -165,6 +177,8 @@ export type UserGroupByOutputType = {
   email: string
   password: string
   tier: $Enums.UserTier
+  geminiApiKey: string | null
+  rescheduleStrategy: string
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -196,6 +210,8 @@ export type UserWhereInput = {
   email?: Prisma.StringFilter<"User"> | string
   password?: Prisma.StringFilter<"User"> | string
   tier?: Prisma.EnumUserTierFilter<"User"> | $Enums.UserTier
+  geminiApiKey?: Prisma.StringNullableFilter<"User"> | string | null
+  rescheduleStrategy?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   tasks?: Prisma.TaskListRelationFilter
@@ -209,6 +225,8 @@ export type UserOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  geminiApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  rescheduleStrategy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   tasks?: Prisma.TaskOrderByRelationAggregateInput
@@ -226,6 +244,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"User"> | string
   password?: Prisma.StringFilter<"User"> | string
   tier?: Prisma.EnumUserTierFilter<"User"> | $Enums.UserTier
+  geminiApiKey?: Prisma.StringNullableFilter<"User"> | string | null
+  rescheduleStrategy?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   tasks?: Prisma.TaskListRelationFilter
@@ -239,6 +259,8 @@ export type UserOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  geminiApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  rescheduleStrategy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -255,6 +277,8 @@ export type UserScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   password?: Prisma.StringWithAggregatesFilter<"User"> | string
   tier?: Prisma.EnumUserTierWithAggregatesFilter<"User"> | $Enums.UserTier
+  geminiApiKey?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  rescheduleStrategy?: Prisma.StringWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -265,6 +289,8 @@ export type UserCreateInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
@@ -278,6 +304,8 @@ export type UserUncheckedCreateInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
@@ -291,6 +319,8 @@ export type UserUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
@@ -304,6 +334,8 @@ export type UserUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
@@ -317,6 +349,8 @@ export type UserCreateManyInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -327,6 +361,8 @@ export type UserUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -337,6 +373,8 @@ export type UserUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -353,6 +391,8 @@ export type UserCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  geminiApiKey?: Prisma.SortOrder
+  rescheduleStrategy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -363,6 +403,8 @@ export type UserMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  geminiApiKey?: Prisma.SortOrder
+  rescheduleStrategy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -373,6 +415,8 @@ export type UserMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   tier?: Prisma.SortOrder
+  geminiApiKey?: Prisma.SortOrder
+  rescheduleStrategy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -388,6 +432,10 @@ export type StringFieldUpdateOperationsInput = {
 
 export type EnumUserTierFieldUpdateOperationsInput = {
   set?: $Enums.UserTier
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -442,6 +490,8 @@ export type UserCreateWithoutTasksInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   taskBlocks?: Prisma.TaskBlockCreateNestedManyWithoutUserInput
@@ -454,6 +504,8 @@ export type UserUncheckedCreateWithoutTasksInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   taskBlocks?: Prisma.TaskBlockUncheckedCreateNestedManyWithoutUserInput
@@ -482,6 +534,8 @@ export type UserUpdateWithoutTasksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   taskBlocks?: Prisma.TaskBlockUpdateManyWithoutUserNestedInput
@@ -494,6 +548,8 @@ export type UserUncheckedUpdateWithoutTasksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   taskBlocks?: Prisma.TaskBlockUncheckedUpdateManyWithoutUserNestedInput
@@ -506,6 +562,8 @@ export type UserCreateWithoutTaskBlocksInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
@@ -518,6 +576,8 @@ export type UserUncheckedCreateWithoutTaskBlocksInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
@@ -546,6 +606,8 @@ export type UserUpdateWithoutTaskBlocksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
@@ -558,6 +620,8 @@ export type UserUncheckedUpdateWithoutTaskBlocksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
@@ -570,6 +634,8 @@ export type UserCreateWithoutDailyRoutinesInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
@@ -582,6 +648,8 @@ export type UserUncheckedCreateWithoutDailyRoutinesInput = {
   email: string
   password: string
   tier?: $Enums.UserTier
+  geminiApiKey?: string | null
+  rescheduleStrategy?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
@@ -610,6 +678,8 @@ export type UserUpdateWithoutDailyRoutinesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
@@ -622,6 +692,8 @@ export type UserUncheckedUpdateWithoutDailyRoutinesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumUserTierFieldUpdateOperationsInput | $Enums.UserTier
+  geminiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rescheduleStrategy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
@@ -683,6 +755,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   email?: boolean
   password?: boolean
   tier?: boolean
+  geminiApiKey?: boolean
+  rescheduleStrategy?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
@@ -699,11 +773,13 @@ export type UserSelectScalar = {
   email?: boolean
   password?: boolean
   tier?: boolean
+  geminiApiKey?: boolean
+  rescheduleStrategy?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "password" | "tier" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "password" | "tier" | "geminiApiKey" | "rescheduleStrategy" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
   taskBlocks?: boolean | Prisma.User$taskBlocksArgs<ExtArgs>
@@ -724,6 +800,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     email: string
     password: string
     tier: $Enums.UserTier
+    geminiApiKey: string | null
+    rescheduleStrategy: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1103,6 +1181,8 @@ export interface UserFieldRefs {
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly password: Prisma.FieldRef<"User", 'String'>
   readonly tier: Prisma.FieldRef<"User", 'UserTier'>
+  readonly geminiApiKey: Prisma.FieldRef<"User", 'String'>
+  readonly rescheduleStrategy: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
