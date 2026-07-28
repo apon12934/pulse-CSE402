@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@pulse/web/*": ["./src/*"]
+      "@pulse/web/*": ["./src/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": [

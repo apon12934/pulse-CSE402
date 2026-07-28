@@ -20,3 +20,9 @@
 *   Always check `memory.md` before generating code to understand the current build phase.
 *   Update `memory.md` immediately upon completing a major feature or phase.
 *   Do not hallucinate external npm packages; strictly use what is defined in `package.json`.
+
+**Git & Version Control Workflow (Mandatory):**
+*   **When to Commit:** Automatically stage, commit, and push your work to the `origin main` branch immediately after completing a major feature, fixing a critical bug, or finishing a Phase. Do not wait for the user to prompt you to save.
+*   **Commit Style:** Write short, natural, human-like commit messages. 
+    *   *Good:* "wired up the jwt auth middleware" or "fixed the prisma config bug"
+    *   *Bad:* "Implemented Authentication Middleware Feature Set v1.0" or "Refactored Database Connection Logic"

@@ -2,21 +2,76 @@
 
 **Current Status:**
 *   ✅ **Phase 1 COMPLETE** — Monorepo Foundation & Database Schema.
-*   Turborepo monorepo initialized with npm workspaces.
-*   Workspaces operational: `@pulse/web` (Next.js 16), `@pulse/api` (Express 5), `@pulse/ui` (UI Kernel), `@pulse/types` (shared types), `apps/android` (placeholder).
-*   Prisma schema defined and validated — 4 models (User, Task, TaskBlock, DailyRoutine) with enums, indexes, and relational constraints.
-*   TiDB Serverless connection template ready in `apps/api/.env.example`.
-*   Turbo build pipeline verified — dependency graph resolves correctly across all 4 packages.
+*   ✅ **Phase 2 COMPLETE** — Authentication & Core API.
+*   ✅ **Phase 3 COMPLETE** — The Gemini AI Engine.
+*   ✅ **Phase 4A COMPLETE** — UI Kernel (Component Library).
+*   ✅ **Phase 4B COMPLETE** — Web UI & Execution Tracking.
+*   Full Next.js dashboard built by exclusively composing `@pulse/ui` primitives.
+*   Global persistent layout with sticky header and left sidebar.
+*   Four core routes: Dashboard (`/`), Timeline (`/timeline`), Analytics (`/analytics`), Settings (`/settings`).
+*   Configured `@/*` and `@pulse/web/*` path aliases.
 
 **Next Immediate Action:**
-*   Execute Phase 2: Authentication & Core API — Build the Express server routes, implement user registration/login, secure JWT middleware, and create CRUD endpoints for Anchors and Fluid Blocks.
+*   Execute Phase 5: Native Android Expansion (Future) — Consume API endpoints in a native Kotlin environment with local Room database caching.
 
 **Key Decisions Locked:**
 *   Package manager: npm (with workspaces).
 *   Turbo v2 task syntax (not legacy `pipeline`).
 *   Express 5 (native async/await error handling).
-*   Prisma with `mysql` provider for TiDB Serverless.
+*   Prisma 7 with `@prisma/adapter-mariadb` driver adapter.
 *   Snake_case table/column mapping via `@@map` / `@map`.
 *   UI Kernel in `/packages/ui` with centralized CSS design tokens.
+*   JWT secret via `JWT_SECRET` env var, 7-day token expiry.
+*   Zod for input validation.
+*   Gemini 2.5 Flash for AI scheduling, `@google/genai` SDK.
 
-*(Note to AI Agent: Continuously update this block as you complete files and hit milestones. Never start a new phase without marking the previous one complete.)*
+**API Endpoints Built:**
+*   `POST /api/auth/register` — Create account, return JWT.
+*   `POST /api/auth/login` — Verify credentials, return JWT.
+*   `GET  /api/auth/me` — Authenticated user profile.
+*   `POST /api/tasks` — Create task (Anchor or Fluid).
+*   `GET  /api/tasks` — List tasks (filterable by status, type, date).
+*   `GET  /api/tasks/:id` — Get single task.
+*   `PATCH /api/tasks/:id` — Update task.
+*   `DELETE /api/tasks/:id` — Delete task.
+*   `POST /api/schedule/generate` — AI-powered daily schedule generation.
+*   `POST /api/schedule/reschedule` — Domino-effect rescheduler (task overrun).
+*   `POST /api/schedule/chat` — Natural language → structured tasks.
+
+---
+
+## 📜 Execution History & Changelog
+*(Note to AI Agent: NEVER delete from this section. ONLY append new entries chronologically. Every entry MUST begin with the current date and your specific model version. This is the permanent historical context.)*
+
+**[2026-07-28] [Antigravity / Gemini 1.5 Pro] Phase 1: Monorepo Foundation (Completed)**
+*   Scaffolded Turborepo v2 with `apps/api`, `apps/web`, `apps/android`, `packages/ui`, and `packages/types`.
+*   *Developer Note/Pivot:* Prisma 7 required a shift from schema-based `DATABASE_URL` to using `prisma.config.ts`. Adapted architecture to support the new Prisma 7 configuration model and successfully deployed the schema to TiDB Serverless.
+*   Implemented strict CUIDs for database primary keys to ensure clean routing later.
+
+**[2026-07-28] [Antigravity / Gemini 1.5 Pro] Phase 2: Authentication & Core API (Completed)**
+*   Built Express 5 server with stateless JWT authentication (7-day expiry).
+*   Established standard AppError pattern for global, structured JSON error handling.
+*   *Developer Note:* Ensured all CRUD operations on the `tasks` endpoints are strictly scoped to the authenticated `userId` extracted from the JWT middleware.
+*   Integrated Zod for robust input validation on all mutation endpoints.
+
+**[2026-07-28] [Antigravity / Gemini 1.5 Pro] Phase 3: The Gemini AI Engine (Completed)**
+*   Integrated Gemini 2.5 Flash via the `@google/genai` SDK.
+*   Engineered three distinct prompt pipelines: Schedule Generation, Domino Rescheduling, and Chat Parsing.
+*   *Developer Note:* Enforced structured JSON output mode with a low temperature (`0.2`) across all AI calls to guarantee deterministic, machine-readable data structures for the frontend.
+*   Successfully baked energy-level optimization parameters into the core scheduling prompts.
+
+**[2026-07-28] [Antigravity / Claude Opus 4.6] Phase 4A: UI Kernel (Completed)**
+*   Configured Tailwind v4 `@theme` with full Kinetic Precision design tokens — colors, fonts, transitions, animations.
+*   Built four kernel primitives: `Button` (4 variants), `Input` (2 variants + error state), `Card` (with header rule + elevated), `StatusChip` (5 status colors + 6px dot indicator).
+*   Created `cn` utility (clsx + tailwind-merge) as the only sanctioned class composition method.
+*   *Developer Note:* All components enforce 0px border-radius, use color inversion for hover/press (no opacity shifts), and JetBrains Mono for all labels/metadata per the Swiss International Style spec.
+
+**[2026-07-28] [Antigravity / Gemini 3.1 Pro] Phase 4B: Web UI & Execution Tracking (Completed)**
+*   Composed the full-screen SaaS web application using Next.js App Router.
+*   Built persistent layout shell (`layout.tsx`, `Header.tsx`, `Sidebar.tsx`) with zero dead whitespace and pure black backgrounds.
+*   Built the Main Dashboard (`/`) featuring the Active Task timer, Upcoming Pipeline, and Gemini Core AI Chat Panel.
+*   Built the Timeline Manager (`/timeline`) with a vertical time-blocking grid.
+*   Built the Analytics View (`/analytics`) with KPI cards and a CSS-based planned vs actual time allocation bar chart.
+*   Built the Settings & Profile (`/settings`) page for AI strategy configuration and integrations.
+*   Created a strongly-typed API client wrapper (`lib/api.ts`) for JWT management and backend communication.
+*   *Developer Note:* Replaced `.js` extensions in `@pulse/ui` exports to fix Next.js Turbopack source resolution issues. Added `@/*` path alias to the web app's `tsconfig.json`.

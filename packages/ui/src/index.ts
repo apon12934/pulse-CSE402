@@ -1,18 +1,18 @@
 /**
  * @pulse/ui — The UI Kernel
  *
- * Centralized, OS-style component library for the Pulse application.
- * Every interactive primitive (buttons, dropdowns, modals, inputs, etc.)
- * is defined here once and consumed across all clients.
+ * Centralized, OS-style component library for Pulse.
+ * Every interactive primitive is defined here once
+ * and consumed across all clients.
  *
  * One code change here propagates everywhere.
- *
- * Component development begins in Phase 4A.
  */
 
-// ─── Placeholder Exports ──────────────────────────────────────────────
-// Components will be exported here as they are built in Phase 4A.
-// Example:
-//   export { Button } from "./components/Button";
-//   export { Dropdown } from "./components/Dropdown";
-//   export { Modal } from "./components/Modal";
+// ─── Utilities ────────────────────────────────────────────
+export { cn } from "./utils/cn";
+
+// ─── Components ───────────────────────────────────────────
+export { Button, type ButtonProps } from "./components/Button";
+export { Input, type InputProps } from "./components/Input";
+export { Card, type CardProps } from "./components/Card";
+export { StatusChip, type StatusChipProps } from "./components/StatusChip";
