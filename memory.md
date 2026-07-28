@@ -4,12 +4,13 @@
 *   ✅ **Phase 1 COMPLETE** — Monorepo Foundation & Database Schema.
 *   ✅ **Phase 2 COMPLETE** — Authentication & Core API.
 *   ✅ **Phase 3 COMPLETE** — The Gemini AI Engine.
-*   Gemini 2.5 Flash integrated with three prompt pipelines: schedule generation, domino rescheduling, and chat parsing.
-*   Structured JSON output mode enforced on all AI calls (temperature 0.2).
-*   Energy-level optimization baked into scheduling prompts.
+*   ✅ **Phase 4A COMPLETE** — UI Kernel (Component Library).
+*   Tailwind v4 design tokens configured from DESIGN.md (Kinetic Precision).
+*   Four kernel primitives built: Button, Input, Card, StatusChip.
+*   Centralized kernel.css with Swiss International Style tokens and animations.
 
 **Next Immediate Action:**
-*   Execute Phase 4A: UI Kernel — Build the shared component library in `/packages/ui`.
+*   Execute Phase 4B: Web UI & Execution Tracking — Build the Next.js dashboard composing from `/packages/ui`.
 
 **Key Decisions Locked:**
 *   Package manager: npm (with workspaces).
@@ -56,3 +57,9 @@
 *   Engineered three distinct prompt pipelines: Schedule Generation, Domino Rescheduling, and Chat Parsing.
 *   *Developer Note:* Enforced structured JSON output mode with a low temperature (`0.2`) across all AI calls to guarantee deterministic, machine-readable data structures for the frontend.
 *   Successfully baked energy-level optimization parameters into the core scheduling prompts.
+
+**[2026-07-28] [Antigravity / Claude Opus 4.6] Phase 4A: UI Kernel (Completed)**
+*   Configured Tailwind v4 `@theme` with full Kinetic Precision design tokens — colors, fonts, transitions, animations.
+*   Built four kernel primitives: `Button` (4 variants), `Input` (2 variants + error state), `Card` (with header rule + elevated), `StatusChip` (5 status colors + 6px dot indicator).
+*   Created `cn` utility (clsx + tailwind-merge) as the only sanctioned class composition method.
+*   *Developer Note:* All components enforce 0px border-radius, use color inversion for hover/press (no opacity shifts), and JetBrains Mono for all labels/metadata per the Swiss International Style spec.
