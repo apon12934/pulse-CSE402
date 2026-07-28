@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import taskRoutes from "./routes/task.routes.js";
+import scheduleRoutes from "./routes/schedule.routes.js";
 import { errorHandler } from "./utils/errors.js";
 
 const app = express();
@@ -19,6 +20,7 @@ app.get("/health", (_req, res) => {
 // ─── API Routes ───────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/schedule", scheduleRoutes);
 
 // ─── Error Handler (must be last) ─────────────────────────
 app.use(errorHandler);

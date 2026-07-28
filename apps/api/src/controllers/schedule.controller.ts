@@ -1,0 +1,195 @@
+import type { Request, Response } from "express";
+import { prisma } from "../utils/prisma.js";
+import { AppError } from "../utils/errors.js";
+import {
+  generateSchedule,
+  reschedule,
+  parseChatInput,
+  type ScheduleItem,
+} from "../services/gemini.service.js";
+
+/**
+ * POST /api/schedule/generate
+ * Takes the user's tasks for a given date and asks Gemini to build an optimised timeline.
+ */
+export async function generateDailySchedule(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const { date, energyLevel } = req.body as { date: string; energyLevel?: string };
+
+  if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
+
+  const dayStart = new Date(date);
+  const dayEnd = new Date(date);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+
+  // Fetch existing tasks for the day
+  const tasks = await prisma.task.findMany({
+    where: {
+      userId,
+      startTime: { gte: dayStart, lt: dayEnd },
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  const anchors: ScheduleItem[] = tasks
+    .filter((t) => t.type === "Anchor")
+    .map((t) => ({
+      title: t.title,
+      type: "Anchor" as const,
+      startTime: t.startTime.toISOString(),
+      endTime: t.endTime.toISOString(),
+      energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
+      priority: t.priority,
+      status: t.status as ScheduleItem["status"],
+    }));
+
+  const fluidTasks: ScheduleItem[] = tasks
+    .filter((t) => t.type === "Fluid")
+    .map((t) => ({
+      title: t.title,
+      type: "Fluid" as const,
+      startTime: t.startTime.toISOString(),
+      endTime: t.endTime.toISOString(),
+      energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
+      priority: t.priority,
+      status: t.status as ScheduleItem["status"],
+    }));
+
+  const schedule = await generateSchedule(anchors, fluidTasks, date, energyLevel ?? "Medium");
+
+  // Persist the AI-generated times back to the database
+  for (const item of schedule) {
+    if (!item.startTime || !item.endTime) continue;
+
+    const match = tasks.find((t) => t.title === item.title);
+    if (match) {
+      await prisma.task.update({
+        where: { id: match.id },
+        data: {
+          startTime: new Date(item.startTime),
+          endTime: new Date(item.endTime),
+          status: item.status ?? "Upcoming",
+        },
+      });
+    }
+  }
+
+  res.json({ schedule, tasksUpdated: schedule.length });
+}
+
+/**
+ * POST /api/schedule/reschedule
+ * "Domino Effect" — a task overran, recalculate the rest of the day.
+ */
+export async function dominoReschedule(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const { taskId, newEndTime } = req.body as { taskId: string; newEndTime: string };
+
+  if (!taskId || !newEndTime) {
+    throw new AppError(400, "taskId and newEndTime are required");
+  }
+
+  // Find the overrun task
+  const overrunTask = await prisma.task.findFirst({ where: { id: taskId, userId } });
+  if (!overrunTask) throw new AppError(404, "Task not found");
+
+  // Update the overrun task's end time
+  await prisma.task.update({
+    where: { id: taskId },
+    data: { endTime: new Date(newEndTime), status: "Running" },
+  });
+
+  // Get remaining tasks for the same day, after the overrun task
+  const dayStart = new Date(overrunTask.startTime);
+  dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+
+  const remaining = await prisma.task.findMany({
+    where: {
+      userId,
+      id: { not: taskId },
+      startTime: { gte: new Date(newEndTime), lt: dayEnd },
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  const remainingItems: ScheduleItem[] = remaining.map((t) => ({
+    title: t.title,
+    type: t.type as ScheduleItem["type"],
+    startTime: t.startTime.toISOString(),
+    endTime: t.endTime.toISOString(),
+    energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
+    priority: t.priority,
+    status: t.status as ScheduleItem["status"],
+  }));
+
+  const dateStr = dayStart.toISOString().split("T")[0]!;
+  const rescheduled = await reschedule(overrunTask.title, newEndTime, remainingItems, dateStr);
+
+  // Persist rescheduled times
+  for (const item of rescheduled) {
+    const match = remaining.find((t) => t.title === item.title);
+    if (match) {
+      await prisma.task.update({
+        where: { id: match.id },
+        data: {
+          ...(item.startTime && { startTime: new Date(item.startTime) }),
+          ...(item.endTime && { endTime: new Date(item.endTime) }),
+          status: item.status,
+        },
+      });
+    }
+  }
+
+  res.json({ rescheduled, tasksAffected: rescheduled.length });
+}
+
+/**
+ * POST /api/schedule/chat
+ * Natural language input — user describes their day, AI parses into structured tasks.
+ */
+export async function chatSchedule(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const { message, date } = req.body as { message: string; date: string };
+
+  if (!message) throw new AppError(400, "message is required");
+  if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
+
+  const parsed = await parseChatInput(message, date);
+
+  // Create tasks from parsed input
+  const createdTasks = [];
+  for (const task of parsed.tasks) {
+    let startTime: Date;
+    let endTime: Date;
+
+    if (task.fixedStartTime) {
+      startTime = new Date(task.fixedStartTime);
+    } else {
+      // Placeholder — will be optimised by generateSchedule
+      startTime = new Date(`${date}T09:00:00`);
+    }
+    endTime = new Date(startTime.getTime() + task.durationMinutes * 60_000);
+
+    const created = await prisma.task.create({
+      data: {
+        userId,
+        title: task.title,
+        type: task.type,
+        energyLevel: task.energyLevel,
+        priority: task.priority,
+        startTime,
+        endTime,
+        status: "Upcoming",
+      },
+    });
+    createdTasks.push(created);
+  }
+
+  res.status(201).json({
+    parsedEnergyLevel: parsed.energyLevel,
+    tasksCreated: createdTasks.length,
+    tasks: createdTasks,
+  });
+}
