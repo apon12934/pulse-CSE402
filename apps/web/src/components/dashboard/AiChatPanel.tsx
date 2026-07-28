@@ -1,69 +1,59 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { Card, Input, Button, cn } from '@pulse/ui';
+import React from 'react';
+import { Bot, SendHorizontal } from 'lucide-react';
+import { Input, Button } from '@pulse/ui';
 
 export function AiChatPanel() {
-  const [messages] = useState([
-    {
-      id: 1,
-      role: 'user',
-      content: "I'm feeling low energy today, reschedule my afternoon",
-    },
-    {
-      id: 2,
-      role: 'ai',
-      content: "Understood. Moved Algorithm Practice to tomorrow. Replaced with light reading block.",
-    },
-    {
-      id: 3,
-      role: 'user',
-      content: "Add a 30min break after EEE206",
-    },
-    {
-      id: 4,
-      role: 'ai',
-      content: "Done. Break scheduled 16:00-16:30. Remaining tasks shifted.",
-    },
-  ]);
-
-  const headerNode = (
-    <div className="flex items-center gap-2 mb-4">
-      <div className="w-2 h-2 rounded-none bg-[#FFFF00]" />
-      <span className="font-mono text-xs text-[#A3A3A3] tracking-widest uppercase">GEMINI CORE</span>
-    </div>
-  );
-
   return (
-    <Card className="h-full flex flex-col w-full overflow-hidden !p-0">
-      <div className="p-4 border-b border-[#262626] bg-[#121212]">
-        {headerNode}
-      </div>
-      
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-[#121212]">
-        {messages.map((msg) => (
-          <div 
-            key={msg.id} 
-            className={cn(
-              "p-3 text-sm font-sans max-w-[85%]",
-              msg.role === 'user' 
-                ? "bg-[#1A1A1A] text-white self-end border border-[#262626]" 
-                : "bg-[#121212] text-[#E5E5E5] self-start border-l-2 border-l-[#FFFF00] border-y border-r border-[#262626]"
-            )}
-          >
-            {msg.content}
-          </div>
-        ))}
+    <div className="w-[320px] h-screen fixed right-0 top-0 border-l border-[#262626] bg-[#000000] flex flex-col z-10 rounded-none">
+      {/* Header */}
+      <div className="h-14 border-b border-[#262626] flex items-center justify-between px-4 shrink-0 bg-[#000000]">
+        <div className="flex items-center gap-2">
+          <Bot className="w-4 h-4 text-white" />
+          <span className="font-mono text-[11px] uppercase tracking-wide text-white">Gemini Core</span>
+        </div>
+        <div className="w-2 h-2 bg-green-500" />
       </div>
 
-      <div className="border-t border-[#262626] p-4 bg-[#121212]">
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <Input variant="outlined" placeholder="Ask Pulse anything..." />
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+        
+        {/* User Message */}
+        <div className="flex flex-col gap-1 items-end w-full">
+          <div className="bg-[#1A1A1A] text-white p-3 text-sm max-w-[90%] border border-[#262626] rounded-none">
+            Lecture ran 20m over. Need to adjust.
           </div>
-          <Button variant="primary" size="sm" className="px-4 shrink-0">SEND</Button>
+          <span className="font-mono text-[10px] text-gray-500">10:48 AM</span>
+        </div>
+
+        {/* AI Message */}
+        <div className="flex flex-col gap-1 items-start w-full">
+          <div className="bg-[#121212] border border-[#262626] border-l-2 border-l-[#FFFF00] p-4 text-sm w-full flex flex-col gap-2 rounded-none">
+            <div className="font-bold text-white text-[13px]">
+              Shifted study block by 20m to absorb lecture delay.
+            </div>
+            <div className="text-gray-400 text-xs">
+              Pushed "Quiz Prep" fluid block to 11:30 AM to maintain Anchor integrity.
+            </div>
+          </div>
+          <span className="font-mono text-[10px] text-[#FFFF00]">SYSTEM · 10:42 AM</span>
+        </div>
+
+      </div>
+
+      {/* Input */}
+      <div className="p-4 border-t border-[#262626] shrink-0 bg-[#000000]">
+        <div className="relative flex items-center">
+          <Input 
+            className="w-full bg-[#121212] border-[#262626] text-white pr-10 font-mono text-xs focus-visible:ring-0 focus-visible:border-[#FFFF00] rounded-none"
+            placeholder="Command Gemini..."
+          />
+          <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 px-2 text-[#888] hover:text-[#FFFF00]">
+            <SendHorizontal className="w-4 h-4" />
+          </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

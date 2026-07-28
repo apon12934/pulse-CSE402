@@ -75,3 +75,12 @@
 *   Built the Settings & Profile (`/settings`) page for AI strategy configuration and integrations.
 *   Created a strongly-typed API client wrapper (`lib/api.ts`) for JWT management and backend communication.
 *   *Developer Note:* Replaced `.js` extensions in `@pulse/ui` exports to fix Next.js Turbopack source resolution issues. Added `@/*` path alias to the web app's `tsconfig.json`.
+
+**[2026-07-28] [Antigravity / Claude Opus 4.6] Phase 4B Refinement: Screenshot-Matched UI Rebuild**
+*   Rebuilt all shell components (Header, Sidebar, Layout) to match verified UI screenshots pixel-for-pixel.
+*   Sidebar redesigned: "AI CORE / V2.4 STATUS: ACTIVE" branding, 5 nav items (DASHBOARD, TIMELINE, ANALYTICS, CHAT, CONFIG) with lucide-react icons.
+*   Dashboard rebuilt: blinking cursor, "CURRENT FOCUS BLOCK" MM:SS countdown timer (24:58), minimal pipeline rows with ANCHOR/FLUID badges and lock/drag icons, GEMINI CORE chat panel with timestamped messages.
+*   Analytics rebuilt: PULSE ANALYTICS MODULE top bar, 3 KPI cards (Execution Rate 92%, Domino Triggers 3, Peak Flow State), PLANNED VS ACTUAL allocation bar chart, SYSTEM INSIGHT card with APPLY CALIBRATION CTA.
+*   Config page created: IDENTITY.SYS profile card, INTEGRATION_PARAMS (Gemini API key + auto-reschedule strategy), SYNC_PROTOCOLS section, SAVE CONFIGURATIONS button.
+*   Added `/chat` route (full-page Gemini Core view) and `/config` route (replaced `/settings`).
+*   Installed `lucide-react` for consistent iconography across all pages.
