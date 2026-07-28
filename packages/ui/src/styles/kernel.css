@@ -1,91 +1,115 @@
 /*
  * ┌──────────────────────────────────────────────┐
  * │  @pulse/ui — Kernel Stylesheet               │
- * │  Centralized animation tokens, transitions,  │
- * │  and interaction patterns.                    │
+ * │  Design System: "Kinetic Precision"           │
+ * │  Swiss International Style + AI Execution     │
  * └──────────────────────────────────────────────┘
  *
- * All hover effects, focus rings, transitions, and
- * micro-animations are defined here. No consuming
- * page may override these with inline styles or
- * local @keyframes.
+ * This is the SINGLE SOURCE OF TRUTH for all design
+ * tokens, animations, and interaction patterns.
+ * No consuming page may override these.
  */
 
-/* ─── Design Tokens ────────────────────────────── */
+/* ─── Google Fonts ─────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
-:root {
-  /* Surfaces */
-  --pulse-surface-floor: #000000;
-  --pulse-surface-module: #121212;
-  --pulse-surface-overlay: #1a1a1a;
-  --pulse-surface-hover: #1a1a1a;
+/* ─── Tailwind v4 Theme ────────────────────────── */
+@import "tailwindcss";
 
-  /* Primary */
-  --pulse-primary: #ffff00;
-  --pulse-on-primary: #000000;
+@theme {
+  /* ── Colors: Surfaces (Z-axis Tonal Stacking) ── */
+  --color-floor: #000000;
+  --color-module: #121212;
+  --color-overlay: #1A1A1A;
+  --color-hover: #1A1A1A;
 
-  /* Typography */
-  --pulse-text-primary: #ffffff;
-  --pulse-text-secondary: #999999;
-  --pulse-text-muted: #666666;
+  /* ── Colors: Primary ────────────────────────── */
+  --color-accent: #FFFF00;
+  --color-on-accent: #000000;
 
-  /* Borders */
-  --pulse-border-default: #262626;
-  --pulse-border-strong: #333333;
-  --pulse-border-focus: #ffff00;
+  /* ── Colors: Typography ─────────────────────── */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #999999;
+  --color-text-muted: #666666;
 
-  /* Status */
-  --pulse-status-error: #ff4444;
-  --pulse-status-success: #44ff44;
+  /* ── Colors: Borders ────────────────────────── */
+  --color-rule: #262626;
+  --color-rule-strong: #333333;
+  --color-rule-focus: #FFFF00;
 
-  /* Transitions */
-  --pulse-transition-color: 150ms ease-out;
-  --pulse-transition-transform: 200ms ease;
-  --pulse-transition-overlay-in: 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  --pulse-transition-overlay-out: 150ms ease-in;
-  --pulse-transition-page: 250ms ease-in-out;
+  /* ── Colors: Status ─────────────────────────── */
+  --color-status-error: #FF4444;
+  --color-status-success: #22C55E;
+  --color-status-warning: #F59E0B;
+  --color-status-running: #3B82F6;
 
-  /* Spacing */
-  --pulse-unit: 4px;
-  --pulse-radius: 0px;
-}
+  /* ── Fonts ──────────────────────────────────── */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-/* ─── Global Focus Ring ────────────────────────── */
+  /* ── Spacing (4px base unit) ────────────────── */
+  --spacing-unit: 4px;
 
-:focus-visible {
-  outline: 2px solid var(--pulse-border-focus);
-  outline-offset: 2px;
-}
+  /* ── Border Radius: ALWAYS 0 ────────────────── */
+  --radius-none: 0px;
 
-/* ─── Keyframes ────────────────────────────────── */
+  /* ── Transitions ────────────────────────────── */
+  --transition-color: 150ms ease-out;
+  --transition-transform: 200ms ease;
+  --transition-overlay-in: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-overlay-out: 150ms ease-in;
+  --transition-page: 250ms ease-in-out;
 
-@keyframes pulse-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
+  /* ── Animations ─────────────────────────────── */
+  --animate-shimmer: pulse-shimmer 1.5s infinite;
+  --animate-slide-up: pulse-slide-up 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: pulse-fade-in 250ms ease-in-out;
 
-@keyframes pulse-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+  @keyframes pulse-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  @keyframes pulse-slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes pulse-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  @keyframes pulse-progress-shrink {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
   }
 }
 
-@keyframes pulse-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+/* ─── Base Layer ───────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-radius: 0;
+  }
 
-@keyframes pulse-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
+  body {
+    background-color: var(--color-floor);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-@keyframes pulse-progress-shrink {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
+  /* ── Global Focus Ring ──────────────────────── */
+  :focus-visible {
+    outline: 2px solid var(--color-rule-focus);
+    outline-offset: 2px;
+  }
 }
