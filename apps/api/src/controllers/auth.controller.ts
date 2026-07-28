@@ -27,7 +27,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 
   const user = await prisma.user.create({
     data: { name, email, password: hashedPassword },
-    select: { id: true, name: true, email: true, tier: true, createdAt: true },
+    select: { id: true, name: true, email: true, tier: true, geminiApiKey: true, rescheduleStrategy: true, createdAt: true },
   });
 
   const token = signToken(user.id);
@@ -63,6 +63,8 @@ export async function login(req: Request, res: Response): Promise<void> {
       name: user.name,
       email: user.email,
       tier: user.tier,
+      geminiApiKey: user.geminiApiKey,
+      rescheduleStrategy: user.rescheduleStrategy,
       createdAt: user.createdAt,
     },
     token,
@@ -76,7 +78,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 export async function getMe(req: Request, res: Response): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: req.userId },
-    select: { id: true, name: true, email: true, tier: true, createdAt: true },
+    select: { id: true, name: true, email: true, tier: true, geminiApiKey: true, rescheduleStrategy: true, createdAt: true },
   });
 
   if (!user) {

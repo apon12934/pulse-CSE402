@@ -729,6 +729,8 @@ export const UserScalarFieldEnum = {
   email: 'email',
   password: 'password',
   tier: 'tier',
+  geminiApiKey: 'geminiApiKey',
+  rescheduleStrategy: 'rescheduleStrategy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -790,22 +792,24 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const UserOrderByRelevanceFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  password: 'password'
-} as const
-
-export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
-
-
 export const NullsOrder = {
   first: 'first',
   last: 'last'
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const UserOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  password: 'password',
+  geminiApiKey: 'geminiApiKey',
+  rescheduleStrategy: 'rescheduleStrategy'
+} as const
+
+export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
 
 
 export const TaskOrderByRelevanceFieldEnum = {

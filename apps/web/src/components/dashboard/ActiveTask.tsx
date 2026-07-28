@@ -1,64 +1,90 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, StatusChip, Button, cn } from '@pulse/ui';
+import React, { useState, useEffect } from 'react';
+import { Card, Button } from '@pulse/ui';
+import { CirclePlus } from 'lucide-react';
+import { apiPost } from '@/lib/api';
 
-export function ActiveTask() {
-  const [timeLeft, setTimeLeft] = useState(1 * 3600 + 23 * 60 + 45); // 1h 23m 45s
+interface ActiveTaskProps {
+  task: any | null;
+}
+
+export function ActiveTask({ task }: ActiveTaskProps) {
+  const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (!task) {
+      setTimeLeft(0);
+      return;
+    }
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const end = new Date(task.endTime).getTime();
+      const diff = Math.floor((end - now) / 1000);
+      return diff > 0 ? diff : 0;
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(timer);
+  }, [task]);
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  const handleNeedMoreTime = async () => {
+    if (!task) return;
+    
+    // Domino Effect Reschedule
+    try {
+      const newEndTime = new Date(new Date(task.endTime).getTime() + 15 * 60000).toISOString();
+      await apiPost('/api/schedule/reschedule', {
+        taskId: task.id,
+        newEndTime,
+      });
+      // A proper implementation would trigger a re-fetch of the tasks here.
+      // For now, we optimistically update the timer.
+      setTimeLeft(prev => prev + 15 * 60);
+      // Let dashboard refetch in a full implementation, or pass a callback
+    } catch (err) {
+      console.error('Failed to reschedule:', err);
+    }
   };
 
-  const totalTime = 2 * 3600; // arbitrary total time
-  const progressPercent = Math.max(0, Math.min(100, 100 - (timeLeft / totalTime) * 100));
-  const steppedProgress = Math.round(progressPercent / 5) * 5;
+  if (!task) {
+    return (
+      <Card className="w-full flex flex-col items-center justify-center py-12 px-6 bg-[#121212] border-[#262626] rounded-none shadow-none mb-12">
+        <div className="font-mono uppercase tracking-[0.3em] text-[#666] text-[11px] mb-8">
+          Current Focus Block
+        </div>
+        <div className="font-mono text-xl font-bold text-[#666] leading-none mb-12 tracking-tight">
+          NO ACTIVE TASK
+        </div>
+      </Card>
+    );
+  }
+
+  const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const seconds = (timeLeft % 60).toString().padStart(2, '0');
 
   return (
-    <Card elevated className="flex flex-col h-full w-full">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[#A3A3A3] font-mono text-xs uppercase tracking-widest">ACTIVE EXECUTION</h2>
-        <StatusChip status="running" />
+    <Card className="w-full flex flex-col items-center justify-center py-12 px-6 bg-[#121212] border-[#262626] rounded-none shadow-none mb-12">
+      <div className="font-mono uppercase tracking-[0.3em] text-[#666] text-[11px] mb-8">
+        Current Focus Block: {task.title}
       </div>
       
-      <div className="flex-1 flex flex-col justify-center gap-6 py-4">
-        <h3 className="text-[32px] font-semibold text-white leading-tight font-sans">
-          CSE323 — Data Structures Review
-        </h3>
-        
-        <div className="flex flex-col gap-2">
-          <div className="text-[64px] font-mono tabular-nums text-[#FFFF00] leading-none">
-            {formatTime(timeLeft)}
-          </div>
-          <div className="w-full h-[2px] bg-[#262626] mt-4 relative">
-            <div 
-              className="absolute top-0 left-0 h-full bg-[#FFFF00] transition-all duration-1000 ease-linear"
-              style={{ width: `${steppedProgress}%` }}
-            />
-          </div>
-        </div>
+      <div className="font-mono text-[120px] font-bold text-[#FFFF00] leading-none mb-12 tracking-tight">
+        {minutes}:{seconds}
       </div>
-      
-      <div className="mt-8 flex flex-col gap-3">
-        <Button variant="primary" size="lg" className="w-full">
-          NEED MORE TIME (+15M)
-        </Button>
-        <div className="text-center">
-          <span className="text-[#A3A3A3] font-mono text-[10px] uppercase tracking-wider">
-            DOMINO EFFECT: Remaining tasks will be recalculated
-          </span>
-        </div>
-      </div>
+
+      <Button 
+        className="bg-[#FFFF00] text-black hover:bg-white hover:text-black transition-none rounded-none px-8 py-6 flex items-center gap-3 font-semibold tracking-wide text-sm border-none shadow-none"
+        onClick={handleNeedMoreTime}
+      >
+        <CirclePlus className="w-5 h-5" />
+        NEED MORE TIME (+15M)
+      </Button>
     </Card>
   );
 }

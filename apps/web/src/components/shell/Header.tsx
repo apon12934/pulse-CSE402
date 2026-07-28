@@ -1,42 +1,37 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { cn } from '@pulse/ui';
+import { Bell, Settings } from 'lucide-react'
+import { cn } from '@pulse/ui'
 
 export function Header() {
-  const [energyLevel, setEnergyLevel] = useState<'LOW' | 'MED' | 'HIGH'>('MED');
-  const levels = ['LOW', 'MED', 'HIGH'] as const;
-
   return (
-    <header className="sticky top-0 z-50 flex h-14 w-full items-center justify-between border-b border-[#262626] bg-[#000000] px-6">
-      <div className="flex items-center gap-2">
-        <span className="text-[18px] font-bold tracking-tight text-white font-sans">PULSE</span>
-        <div className="h-2 w-2 rounded-none bg-[#FFFF00]" />
-      </div>
-
+    <header className="h-14 w-full bg-black border-b border-[#262626] flex items-center justify-between px-6 shrink-0">
       <div className="flex items-center">
-        {levels.map((level) => (
-          <button
-            key={level}
-            onClick={() => setEnergyLevel(level)}
-            className={cn(
-              "px-4 py-1 text-xs font-mono uppercase tracking-wider border border-[#262626] transition-none rounded-none -ml-[1px] first:ml-0",
-              energyLevel === level 
-                ? "bg-[#FFFF00] text-black border-[#FFFF00] z-10 relative" 
-                : "bg-transparent text-[#A3A3A3] hover:text-white hover:bg-[#121212]"
-            )}
-          >
-            {level}
-          </button>
-        ))}
+        <span className="text-[#FFFF00] font-sans font-bold text-lg tracking-wider">PULSE</span>
+      </div>
+      
+      <div className="flex items-center">
+        <div className="flex font-mono text-[11px] font-bold">
+          <button className="px-4 py-1.5 border border-[#262626] text-[#888] bg-transparent border-r-0 hover:text-white transition-colors">LOW</button>
+          <button className="px-4 py-1.5 border border-[#FFFF00] text-black bg-[#FFFF00]">MED</button>
+          <button className="px-4 py-1.5 border border-[#262626] text-[#888] bg-transparent border-l-0 hover:text-white transition-colors">HIGH</button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-white font-sans">Alamin Islam Apon</span>
-        <span className="border border-[#262626] px-2 py-0.5 text-xs font-mono text-[#A3A3A3] rounded-none bg-[#121212]">
-          Free Tier
-        </span>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#333] flex items-center justify-center text-xs text-white">AI</div>
+          <span className="text-white text-sm font-medium">Alamin Islam Apon</span>
+          <span className="px-1.5 py-0.5 border border-[#262626] bg-[#1a1a1a] text-[#888] font-mono text-[10px]">FREE</span>
+        </div>
+        <div className="w-px h-6 bg-[#262626] mx-1"></div>
+        <button className="text-[#888] hover:text-white transition-colors">
+          <Bell className="w-4 h-4" />
+        </button>
+        <button className="text-[#888] hover:text-white transition-colors">
+          <Settings className="w-4 h-4" />
+        </button>
       </div>
     </header>
-  );
+  )
 }

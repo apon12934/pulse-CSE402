@@ -75,3 +75,26 @@
 *   Built the Settings & Profile (`/settings`) page for AI strategy configuration and integrations.
 *   Created a strongly-typed API client wrapper (`lib/api.ts`) for JWT management and backend communication.
 *   *Developer Note:* Replaced `.js` extensions in `@pulse/ui` exports to fix Next.js Turbopack source resolution issues. Added `@/*` path alias to the web app's `tsconfig.json`.
+
+**[2026-07-28] [Antigravity / Claude Opus 4.6] Phase 4B Refinement: Screenshot-Matched UI Rebuild**
+*   Rebuilt all shell components (Header, Sidebar, Layout) to match verified UI screenshots pixel-for-pixel.
+*   Sidebar redesigned: "AI CORE / V2.4 STATUS: ACTIVE" branding, 5 nav items (DASHBOARD, TIMELINE, ANALYTICS, CHAT, CONFIG) with lucide-react icons.
+*   Dashboard rebuilt: blinking cursor, "CURRENT FOCUS BLOCK" MM:SS countdown timer (24:58), minimal pipeline rows with ANCHOR/FLUID badges and lock/drag icons, GEMINI CORE chat panel with timestamped messages.
+*   Analytics rebuilt: PULSE ANALYTICS MODULE top bar, 3 KPI cards (Execution Rate 92%, Domino Triggers 3, Peak Flow State), PLANNED VS ACTUAL allocation bar chart, SYSTEM INSIGHT card with APPLY CALIBRATION CTA.
+*   Config page created: IDENTITY.SYS profile card, INTEGRATION_PARAMS (Gemini API key + auto-reschedule strategy), SYNC_PROTOCOLS section, SAVE CONFIGURATIONS button.
+*   Added `/chat` route (full-page Gemini Core view) and `/config` route (replaced `/settings`).
+*   Installed `lucide-react` for consistent iconography across all pages.
+
+**[2026-07-28] [Antigravity / Gemini 3.1 Pro] Phase 4C: Frontend API Wiring**
+*   Introduced `zustand` to manage global authentication state (`user`, `token`, `isLoading`).
+*   Created `ProtectedRoute` wrapper and a unified `/login` & registration view.
+*   Wired Dashboard (`page.tsx`) to fetch daily tasks from `/api/tasks` and cascade them down to `ActiveTask.tsx` (using real countdown mechanics to the `endTime`) and `UpcomingPipeline.tsx`.
+*   Wired `Timeline` view to fetch scheduled blocks from the API and connected the "GENERATE AI ROUTINE" button to `/api/schedule/generate`.
+*   Wired `AiChatPanel.tsx` and the full `/chat` route to send directives to `/api/schedule/chat`, maintaining local message state.
+*   Wired Config page (`/config`) to use `localStorage` for Gemini API Key and Reschedule strategy persistence pending future DB migrations.
+
+**[2026-07-28] [Antigravity / Gemini 3.1 Pro] Database Migration & User Config Refactor**
+*   Updated `User` model in `schema.prisma` to include `geminiApiKey` and `rescheduleStrategy`. Generated new Prisma Client.
+*   Added `PATCH /api/user/profile` endpoint in the Express backend, backed by Zod validation, to securely update user preferences.
+*   Refactored the `/api/auth/me` and `/api/auth/login` endpoints to return these new fields during hydration.
+*   Updated the `useAuthStore` User interface and refactored `/config/page.tsx` to save and read settings via the DB rather than `localStorage`.
