@@ -98,3 +98,6 @@
 *   Added `PATCH /api/user/profile` endpoint in the Express backend, backed by Zod validation, to securely update user preferences.
 *   Refactored the `/api/auth/me` and `/api/auth/login` endpoints to return these new fields during hydration.
 *   Updated the `useAuthStore` User interface and refactored `/config/page.tsx` to save and read settings via the DB rather than `localStorage`.
+
+**[2026-08-01] [Antigravity / Gemini 3.1 Pro] Roadmap Adjustment**
+*   **Decision:** Phase 5 (Native Android Expansion) is officially placed on hold. We will focus entirely on polishing and ensuring the web version is 100% fully functional before touching the mobile app codebase.
