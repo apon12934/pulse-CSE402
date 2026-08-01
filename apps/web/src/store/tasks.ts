@@ -8,6 +8,7 @@ interface TaskStore {
   error: string | null;
   fetchTasks: (date: Date) => Promise<void>;
   updateTasks: (newTasks: any[]) => void;
+  deleteTask: (taskId: string) => Promise<void>;
 }
 
 export const useTaskStore = create<TaskStore>((set) => ({
@@ -35,5 +36,18 @@ export const useTaskStore = create<TaskStore>((set) => ({
 
   updateTasks: (newTasks: any[]) => {
     set({ tasks: newTasks });
+  },
+
+  deleteTask: async (taskId: string) => {
+    try {
+      const { apiDelete } = await import('@/lib/api');
+      await apiDelete(`/api/tasks/${taskId}`);
+      set((state) => ({
+        tasks: state.tasks.filter((t) => t.id !== taskId)
+      }));
+    } catch (err: any) {
+      console.error('Failed to delete task:', err);
+      set({ error: err.message || 'Failed to delete task' });
+    }
   }
 }));

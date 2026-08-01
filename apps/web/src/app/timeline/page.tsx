@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button, cn } from '@pulse/ui';
-import { Lock, ChevronLeft, ChevronRight, GripVertical, Sparkles } from 'lucide-react';
+import { Lock, ChevronLeft, ChevronRight, GripVertical, Sparkles, Trash2 } from 'lucide-react';
 import { apiPost } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useTaskStore } from '@/store/tasks';
@@ -43,7 +43,7 @@ function formatTimeRange(startStr: string, endStr: string): string {
 
 /* ─── Page Component ───────────────────────────── */
 export default function TimelinePage() {
-  const { tasks, fetchTasks, error: storeError } = useTaskStore();
+  const { tasks, fetchTasks, deleteTask, error: storeError } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isGenerating, setIsGenerating] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -222,6 +222,12 @@ export default function TimelinePage() {
                         ) : (
                           <Lock className="w-3.5 h-3.5 text-[#555]" />
                         )}
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); deleteTask(block.id); }}
+                          className="ml-2 text-[#555] hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
 
