@@ -1,9 +1,18 @@
 'use client'
 
-import { Bell, Settings } from 'lucide-react'
+import { Bell, Settings, LogOut } from 'lucide-react'
 import { cn } from '@pulse/ui'
+import { useAuthStore } from '@/store/auth'
+import { useRouter } from 'next/navigation'
 
 export function Header() {
+  const { user, logout } = useAuthStore()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
   return (
     <header className="h-14 w-full bg-black border-b border-[#262626] flex items-center justify-between px-6 shrink-0">
       <div className="flex items-center">
@@ -19,17 +28,30 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#333] flex items-center justify-center text-xs text-white">AI</div>
-          <span className="text-white text-sm font-medium">Alamin Islam Apon</span>
-          <span className="px-1.5 py-0.5 border border-[#262626] bg-[#1a1a1a] text-[#888] font-mono text-[10px]">FREE</span>
-        </div>
+        {user && (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-[#333] flex items-center justify-center text-xs text-white">
+              {user.name?.substring(0, 2).toUpperCase() || 'AI'}
+            </div>
+            <span className="hidden sm:block text-white text-sm font-medium">{user.name}</span>
+            <span className="px-1.5 py-0.5 border border-[#262626] bg-[#1a1a1a] text-[#888] font-mono text-[10px]">
+              {user.tier ? user.tier.toUpperCase() : 'FREE'}
+            </span>
+          </div>
+        )}
         <div className="w-px h-6 bg-[#262626] mx-1"></div>
         <button className="text-[#888] hover:text-white transition-colors">
           <Bell className="w-4 h-4" />
         </button>
         <button className="text-[#888] hover:text-white transition-colors">
           <Settings className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={handleLogout}
+          className="text-[#888] hover:text-[#FF4444] transition-colors ml-2"
+          title="Logout"
+        >
+          <LogOut className="w-4 h-4" />
         </button>
       </div>
     </header>

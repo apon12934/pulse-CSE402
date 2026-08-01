@@ -3,20 +3,19 @@
 import { useState, useEffect } from 'react';
 import { Button, cn } from '@pulse/ui';
 import { Lock, ChevronLeft, ChevronRight, GripVertical, Sparkles } from 'lucide-react';
-import { apiGet, apiPost } from '@/lib/api';
+import { apiPost } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { useTaskStore } from '@/store/tasks';
 
 /* ─── Time Grid Config ─────────────────────────── */
-const HOUR_START = 8;
-const HOUR_END = 23;
-const HOURS = Array.from({ length: HOUR_END - HOUR_START + 1 }, (_, i) => HOUR_START + i);
+// We'll compute these dynamically inside the component now
 const HOUR_HEIGHT = 80; // px per hour
 
-function timeToOffset(dateString: string): number {
+function timeToOffset(dateString: string, hourStart: number): number {
   const d = new Date(dateString);
   const h = d.getHours();
   const m = d.getMinutes();
-  return (h - HOUR_START + m / 60) * HOUR_HEIGHT;
+  return (h - hourStart + m / 60) * HOUR_HEIGHT;
 }
 
 function timeToHeight(startStr: string, endStr: string): number {
@@ -44,29 +43,20 @@ function formatTimeRange(startStr: string, endStr: string): string {
 
 /* ─── Page Component ───────────────────────────── */
 export default function TimelinePage() {
-  const [tasks, setTasks] = useState<any[]>([]);
+  const { tasks, fetchTasks, error: storeError } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isGenerating, setIsGenerating] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
   const { token } = useAuthStore();
-
-  const fetchTasks = async (date: Date) => {
-    if (!token) return;
-    try {
-      const dateStr = date.toISOString().split('T')[0];
-      const res = await apiGet<{ tasks: any[] }>(`/api/tasks?date=${dateStr}`);
-      setTasks(res.tasks || []);
-    } catch (err) {
-      console.error('Failed to fetch tasks:', err);
-    }
-  };
 
   useEffect(() => {
     fetchTasks(currentDate);
-  }, [currentDate, token]);
+  }, [currentDate, token, fetchTasks]);
 
   const handleGenerate = async () => {
     if (!token) return;
     setIsGenerating(true);
+    setLocalError(null);
     try {
       const dateStr = currentDate.toISOString().split('T')[0];
       const res = await apiPost<{ schedule: any[] }>('/api/schedule/generate', {
@@ -75,18 +65,35 @@ export default function TimelinePage() {
       });
       // Refresh tasks
       await fetchTasks(currentDate);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to generate schedule:', err);
+      setLocalError(err.message || 'Generation failed');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const totalHeight = (HOUR_END - HOUR_START) * HOUR_HEIGHT;
+  // Dynamic Hour Range Calculation
+  const hourStart = tasks.length > 0 
+    ? Math.max(0, Math.min(...tasks.map(t => new Date(t.startTime).getHours())) - 1)
+    : 8;
+  const hourEnd = tasks.length > 0
+    ? Math.min(23, Math.max(...tasks.map(t => new Date(t.endTime).getHours())) + 1)
+    : 23;
+  
+  const HOURS = Array.from({ length: hourEnd - hourStart + 1 }, (_, i) => hourStart + i);
+  const totalHeight = (hourEnd - hourStart + 1) * HOUR_HEIGHT;
   const dateLabel = currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
+  const error = storeError || localError;
+
   return (
-    <div className="flex flex-col h-full gap-6">
+    <div className="flex flex-col h-full gap-6 relative">
+      {error && (
+        <div className="absolute top-0 left-0 w-full bg-[#FF4444] text-white font-mono text-[10px] uppercase px-4 py-2 text-center tracking-widest z-50">
+          SYS_ERR: {error}
+        </div>
+      )}
       {/* ── Header Strip ──────────────────────── */}
       <div className="flex items-center justify-between shrink-0">
         <div>
@@ -145,7 +152,7 @@ export default function TimelinePage() {
               <div
                 key={h}
                 className="absolute right-0 pr-3 flex items-start"
-                style={{ top: (h - HOUR_START) * HOUR_HEIGHT }}
+                style={{ top: (h - hourStart) * HOUR_HEIGHT }}
               >
                 <span className="font-mono text-[10px] text-[#555] uppercase tracking-wider leading-none -translate-y-1/2">
                   {formatHour(h)}
@@ -161,13 +168,12 @@ export default function TimelinePage() {
               <div
                 key={h}
                 className="absolute left-0 w-full border-t border-[#1a1a1a]"
-                style={{ top: (h - HOUR_START) * HOUR_HEIGHT }}
+                style={{ top: (h - hourStart) * HOUR_HEIGHT }}
               />
             ))}
 
-            {/* Time Blocks */}
             {tasks.map((block) => {
-              const top = timeToOffset(block.startTime);
+              const top = timeToOffset(block.startTime, hourStart);
               const height = timeToHeight(block.startTime, block.endTime);
               const isFluid = block.type === 'Fluid';
 
@@ -233,6 +239,18 @@ export default function TimelinePage() {
                 </div>
               );
             })}
+
+            {tasks.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 border border-[#262626] rounded-full flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6 text-[#666]" />
+                </div>
+                <h3 className="font-sans text-xl text-white font-medium mb-2">No tasks scheduled</h3>
+                <p className="font-mono text-xs text-[#666] uppercase tracking-widest max-w-sm leading-relaxed">
+                  Generate an AI routine or manually add anchor blocks to begin your day.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

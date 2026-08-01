@@ -5,11 +5,10 @@ import { Bot, SendHorizontal } from 'lucide-react';
 import { Input, Button } from '@pulse/ui';
 import { apiPost } from '@/lib/api';
 
-interface AiChatPanelProps {
-  setTasks?: React.Dispatch<React.SetStateAction<any[]>>;
-}
+import { useTaskStore } from '@/store/tasks';
 
-export function AiChatPanel({ setTasks }: AiChatPanelProps) {
+export function AiChatPanel() {
+  const { tasks, updateTasks } = useTaskStore();
   const [messages, setMessages] = useState<any[]>([
     {
       id: 'init',
@@ -52,10 +51,8 @@ export function AiChatPanel({ setTasks }: AiChatPanelProps) {
 
       setMessages(prev => [...prev, aiMessage]);
 
-      if (setTasks) {
-        // Optimistically append the newly created tasks
-        setTasks(prev => [...prev, ...response.tasks].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()));
-      }
+      // Optimistically append the newly created tasks
+      updateTasks([...tasks, ...response.tasks].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()));
     } catch (err) {
       console.error('Failed to chat:', err);
       setMessages(prev => [...prev, {

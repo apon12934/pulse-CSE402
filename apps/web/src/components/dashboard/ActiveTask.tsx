@@ -4,12 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button } from '@pulse/ui';
 import { CirclePlus } from 'lucide-react';
 import { apiPost } from '@/lib/api';
+import { useTaskStore } from '@/store/tasks';
 
 interface ActiveTaskProps {
   task: any | null;
 }
 
 export function ActiveTask({ task }: ActiveTaskProps) {
+  const { fetchTasks } = useTaskStore();
   const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
@@ -43,10 +45,10 @@ export function ActiveTask({ task }: ActiveTaskProps) {
         taskId: task.id,
         newEndTime,
       });
-      // A proper implementation would trigger a re-fetch of the tasks here.
-      // For now, we optimistically update the timer.
       setTimeLeft(prev => prev + 15 * 60);
-      // Let dashboard refetch in a full implementation, or pass a callback
+      
+      // Trigger a refetch globally to sync upcoming pipeline
+      await fetchTasks(new Date());
     } catch (err) {
       console.error('Failed to reschedule:', err);
     }
