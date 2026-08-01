@@ -39,6 +39,7 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   console.error("[Unhandled Error]", err);
   res.status(500).json({
     status: 500,
-    message: "Internal server error",
+    message: err instanceof Error ? err.message : "Internal server error",
+    details: err instanceof Error ? err.stack : undefined
   } satisfies ApiError);
 }
