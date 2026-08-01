@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={cn(inter.variable, jetbrainsMono.variable)}>
+    <html lang="en" className={cn("h-full", inter.variable, jetbrainsMono.variable)}>
       <body className="flex h-full flex-col bg-[#000000] text-[#EDEDED] font-sans antialiased overflow-hidden">
         <ProtectedRoute>
           <Header />

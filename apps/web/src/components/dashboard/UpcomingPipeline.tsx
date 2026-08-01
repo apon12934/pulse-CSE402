@@ -22,7 +22,10 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
 
       <div className="flex flex-col">
         {tasks.length === 0 && (
-          <div className="py-4 text-[#666] font-mono text-sm">No upcoming tasks today.</div>
+          <div className="flex flex-col items-center justify-center py-12 text-center bg-[#121212] border border-[#262626]">
+            <div className="font-sans text-lg text-white mb-2">Clear Schedule</div>
+            <div className="font-mono text-[#666] text-xs uppercase tracking-widest">No upcoming tasks today</div>
+          </div>
         )}
         {tasks.map((task, i) => {
           const isCompleted = task.status === 'Completed';
