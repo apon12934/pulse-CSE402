@@ -1,14 +1,17 @@
 import { StatusChip, cn } from '@pulse/ui';
-import { Lock, GripVertical } from 'lucide-react';
+import { Lock, GripVertical, Trash2 } from 'lucide-react';
+import { useTaskStore } from '@/store/tasks';
 
 interface UpcomingPipelineProps {
   tasks: any[];
 }
 
 export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
+  const { deleteTask } = useTaskStore();
+
   const formatTime = (isoString: string) => {
     const d = new Date(isoString);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
   return (
@@ -66,6 +69,12 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
                   ) : (
                     <GripVertical className="w-4 h-4 text-[#666]" />
                   )}
+                  <button 
+                    onClick={() => deleteTask(task.id)}
+                    className="ml-2 text-[#666] hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
