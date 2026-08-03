@@ -42,7 +42,7 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
                 isCompleted && "opacity-50"
               )}>
                 <div className={cn(
-                  "w-16 flex-shrink-0 font-mono text-sm",
+                  "w-20 whitespace-nowrap flex-shrink-0 font-mono text-sm",
                   isCompleted ? "text-[#666]" : "text-[#A3A3A3]"
                 )}>
                   {formatTime(task.startTime)}
