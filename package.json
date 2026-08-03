@@ -18,5 +18,8 @@
   "packageManager": "npm@11.13.0",
   "engines": {
     "node": ">=20"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.33.0"
   }
 }
