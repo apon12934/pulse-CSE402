@@ -11,7 +11,7 @@ export default function ChatPage() {
       id: 'init',
       role: 'ai',
       text: 'Gemini Core initialized. Ready for scheduling directives.',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
     }
   ]);
   const [input, setInput] = useState('');
@@ -24,7 +24,7 @@ export default function ChatPage() {
       id: Date.now().toString(),
       role: 'user',
       text: input,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -43,7 +43,7 @@ export default function ChatPage() {
         role: 'ai',
         title: `Parsed ${response.tasksCreated} task(s).`,
         text: `Energy level interpreted as: ${response.parsedEnergyLevel}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
       };
 
       setMessages(prev => [...prev, aiMessage]);
@@ -54,7 +54,7 @@ export default function ChatPage() {
         role: 'ai',
         title: 'Error processing directive.',
         text: 'Please check your connection and try again.',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
       }]);
     } finally {
       setIsProcessing(false);

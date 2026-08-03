@@ -51,7 +51,7 @@ export function AiChatPanel() {
       id: Date.now().toString(),
       role: 'user',
       text: input,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -111,7 +111,7 @@ export function AiChatPanel() {
   };
 
   return (
-    <div className="w-[320px] h-screen fixed right-0 top-0 border-l border-[#262626] bg-[#000000] flex flex-col z-10 rounded-none">
+    <div className="w-full h-full bg-[#000000] border-l border-[#262626] flex flex-col z-40">
       {/* Header */}
       <div className="h-14 border-b border-[#262626] flex items-center justify-between px-4 shrink-0 bg-[#000000]">
         <div className="flex items-center gap-2">
@@ -134,8 +134,8 @@ export function AiChatPanel() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
-        {messages.map((msg) => (
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((msg: any) => (
           <div key={msg.id} className={`flex flex-col gap-1 w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
             {msg.role === 'user' ? (
               <>
