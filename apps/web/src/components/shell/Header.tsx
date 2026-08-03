@@ -17,6 +17,7 @@ export function Header() {
   const handleLogout = () => {
     logout()
     router.push('/login')
+  }
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !token) return
@@ -26,7 +27,7 @@ export function Header() {
     formData.append('avatar', file)
 
     try {
-      const res = await fetch('http://localhost:3001/api/user/avatar', {
+      const res = await fetch('http://localhost:4000/api/user/avatar', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
@@ -40,7 +41,9 @@ export function Header() {
           updateAvatarUrl(data.user.avatarUrl)
         }
       } else {
-        console.error('Failed to upload avatar')
+        const text = await res.text()
+        console.error('Failed to upload avatar', res.status, text)
+        alert('Upload failed: ' + text)
       }
     } catch (err) {
       console.error(err)
