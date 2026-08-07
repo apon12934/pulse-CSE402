@@ -80,6 +80,39 @@ Return ONLY valid JSON. No markdown wrappers.
 }`;
 }
 
+function buildWeeklySystemPrompt(): string {
+  return `You are Pulse, an AI life coach and scheduling assistant. The user wants to build a recurring WEEKLY routine.
+
+RULES:
+1. Ask about the user's lifestyle: wake time, sleep time, work/school hours, exercise habits, meal times, hobbies.
+2. Once you have enough context, propose a full 7-day weekly schedule.
+3. Treat weekdays (Mon-Fri) and weekends (Sat-Sun) differently — weekends can be lighter.
+4. Each task must be realistic and repeatable every week.
+5. Cover essential daily blocks: Morning Routine, Meals, Work/Study, Breaks, Exercise, Wind-Down.
+6. Only set status to "weekly_approved" when the user EXPLICITLY approves.
+7. dayOfWeek: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
+8. Times use 24h format: startHour 7 startMinute 30 = 7:30 AM.
+
+RESPONSE FORMAT — Return ONLY valid JSON:
+{
+  "reply": "Your natural language response",
+  "status": "chatting" | "weekly_draft" | "weekly_approved",
+  "weeklyTasks": [
+    {
+      "title": "string",
+      "type": "Anchor" | "Fluid",
+      "energyLevel": "High" | "Medium" | "Low",
+      "priority": number,
+      "dayOfWeek": number,
+      "startHour": number,
+      "startMinute": number,
+      "endHour": number,
+      "endMinute": number
+    }
+  ]
+}`;
+}
+
 export type ScheduleItem = {
   title: string;
   type: "Anchor" | "Fluid";
@@ -92,7 +125,7 @@ export type ScheduleItem = {
 
 export type ParsedChatInput = {
   reply: string;
-  status: "chatting" | "draft" | "approved";
+  status: "chatting" | "draft" | "approved" | "weekly_draft" | "weekly_approved";
   tasks?: {
     title: string;
     type: "Anchor" | "Fluid";
@@ -100,6 +133,17 @@ export type ParsedChatInput = {
     fixedStartTime: string | null;
     priority: number;
     energyLevel: "High" | "Medium" | "Low";
+  }[];
+  weeklyTasks?: {
+    title: string;
+    type: "Anchor" | "Fluid";
+    energyLevel: "High" | "Medium" | "Low";
+    priority: number;
+    dayOfWeek: number;
+    startHour: number;
+    startMinute: number;
+    endHour: number;
+    endMinute: number;
   }[];
 };
 
@@ -198,3 +242,36 @@ export async function converseSchedule(
   }
 }
 
+/**
+ * Converse to build a weekly recurring routine.
+ */
+export async function converseWeekly(
+  messages: { role: "user" | "model"; content: string }[],
+): Promise<ParsedChatInput> {
+  const contents = messages.map(m => ({
+    role: m.role,
+    parts: [{ text: m.content }],
+  }));
+
+  const response = await ai.models.generateContent({
+    model: "gemini-flash-latest",
+    contents,
+    config: {
+      systemInstruction: buildWeeklySystemPrompt(),
+      temperature: 0.4,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const text = response.text ?? "";
+  try {
+    const cleaned = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+    return JSON.parse(cleaned) as ParsedChatInput;
+  } catch (e) {
+    console.error("Failed to parse weekly Gemini output:", text);
+    return {
+      reply: "I had trouble formatting that. Could you rephrase?",
+      status: "chatting",
+    };
+  }
+}

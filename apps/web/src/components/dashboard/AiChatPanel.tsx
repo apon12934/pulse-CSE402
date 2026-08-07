@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { useTaskStore } from '@/store/tasks';
 
 export function AiChatPanel() {
-  const { tasks, updateTasks } = useTaskStore();
+  const { fetchTasks } = useTaskStore();
   const [messages, setMessages] = useState<any[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('pulse_chat_history');
@@ -65,9 +65,9 @@ export function AiChatPanel() {
     setIsProcessing(true);
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
       
-      // Build history for backend (excluding internal AI messages that might confuse it, or keep them)
       const history = messages
         .filter(m => m.role === 'user' || m.role === 'ai')
         .map(m => ({
@@ -75,33 +75,38 @@ export function AiChatPanel() {
           content: m.text
         }));
       
-      // Append the new message to the history we send
       history.push({ role: 'user', content: userMessage.text });
 
-      // Reset textarea height
       const textarea = document.getElementById('chat-input') as HTMLTextAreaElement;
       if (textarea) textarea.style.height = 'auto';
 
       const response = await apiPost<any>('/api/schedule/chat', {
         messages: history,
-        date: today
+        date: dateStr
       });
+
+      if (response.status === 'weekly_approved' && response.weeklyTasks?.length > 0) {
+        await apiPost('/api/weekly-template/generate', { tasks: response.weeklyTasks });
+        await fetchTasks(today);
+      }
+
+      if (response.status === 'approved') {
+        await fetchTasks(today);
+      }
 
       const aiMessage = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        title: response.status === 'draft' ? 'Draft Schedule Proposed' : (response.status === 'approved' ? 'Schedule Approved!' : undefined),
+        title: response.status === 'draft' ? 'Draft Schedule Proposed' : (response.status === 'approved' ? 'Schedule Approved!' : (response.status === 'weekly_draft' ? 'Weekly Template Proposed' : (response.status === 'weekly_approved' ? 'Weekly Template Saved!' : undefined))),
         text: response.reply,
         status: response.status,
-        tasks: response.draftTasks || [],
+        tasks: response.status === 'weekly_draft' ? response.weeklyTasks : (response.draftTasks || []),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
       };
 
       setMessages(prev => [...prev, aiMessage]);
 
-      if (response.status === 'approved' && response.tasks?.length) {
-        updateTasks([...tasks, ...response.tasks].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()));
-      }
+      // The state update via fetchTasks was already handled above
     } catch (err) {
       console.error('Failed to chat:', err);
       setMessages(prev => [...prev, {
@@ -181,6 +186,32 @@ export function AiChatPanel() {
                                 ) : (
                                   <span>Fluid · {t.durationMinutes}m</span>
                                 )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {msg.status === 'weekly_draft' && msg.tasks && msg.tasks.length > 0 && (
+                    <div className="mt-3 flex flex-col gap-2 border-t border-[#262626] pt-3">
+                      <div className="text-[10px] font-mono text-[#FFFF00] uppercase tracking-wider">Proposed Weekly Template:</div>
+                        {msg.tasks.map((t: any, i: number) => {
+                          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                          const dayName = days[t.dayOfWeek];
+                          const formatHr = (h: number, m: number) => {
+                            const ampm = h >= 12 ? 'PM' : 'AM';
+                            const hr = h % 12 || 12;
+                            return `${hr}:${m.toString().padStart(2, '0')} ${ampm}`;
+                          };
+                          return (
+                            <div key={i} className="flex flex-col gap-1 bg-[#1A1A1A] p-2 border border-[#FFFF00]/30">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-white text-xs">{t.title}</span>
+                                <span className="text-[10px] text-[#FFFF00] font-mono">{dayName}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
+                                <span>{formatHr(t.startHour, t.startMinute)} → {formatHr(t.endHour, t.endMinute)}</span>
                               </div>
                             </div>
                           );

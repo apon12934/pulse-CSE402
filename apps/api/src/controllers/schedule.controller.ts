@@ -5,6 +5,7 @@ import {
   generateSchedule,
   reschedule,
   converseSchedule,
+  converseWeekly,
   type ScheduleItem,
 } from "../services/gemini.service.js";
 
@@ -155,6 +156,20 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
 
   if (!messages || !Array.isArray(messages)) throw new AppError(400, "messages array is required");
   if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
+
+  // If this is a weekly conversation:
+  if (messages.some(m => m.content.toLowerCase().includes("weekly"))) {
+    const parsedWeekly = await converseWeekly(messages);
+    
+    // If approved, we route to generateWeeklyTemplate internally by sending a POST to our own service or doing it inline
+    // Actually, it's cleaner to let the frontend handle the approval and call POST /api/weekly-template/generate
+    res.json({
+      reply: parsedWeekly.reply,
+      status: parsedWeekly.status,
+      weeklyTasks: parsedWeekly.weeklyTasks ?? [],
+    });
+    return;
+  }
 
   const parsed = await converseSchedule(messages, date);
 
