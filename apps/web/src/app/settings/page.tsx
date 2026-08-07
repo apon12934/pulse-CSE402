@@ -6,7 +6,7 @@ import { Button } from '@pulse/ui';
 import { Loader2, Upload, AlertTriangle } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { PasswordField } from '@/components/ui/PasswordField';
-import { apiPatch, apiDelete, apiPost } from '@/lib/api';
+import { apiPatch, apiDelete, apiPost, BASE_URL } from '@/lib/api';
 import { useTaskStore } from '@/store/tasks';
 
 export default function SettingsPage() {
@@ -81,7 +81,8 @@ export default function SettingsPage() {
       const formData = new FormData();
       formData.append('avatar', blob, 'avatar.webp');
 
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/user/avatar', {
+      const url = `${BASE_URL}/api/user/avatar`;
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
