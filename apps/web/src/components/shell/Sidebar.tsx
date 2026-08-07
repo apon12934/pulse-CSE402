@@ -9,8 +9,6 @@ const NAV_ITEMS = [
   { name: 'DASHBOARD', icon: LayoutGrid, path: '/' },
   { name: 'TIMELINE', icon: FileText, path: '/timeline' },
   { name: 'ANALYTICS', icon: BarChart3, path: '/analytics' },
-  { name: 'CHAT', icon: Globe, path: '/chat' },
-  { name: 'CONFIG', icon: SlidersHorizontal, path: '/config' },
 ]
 
 export function Sidebar() {
@@ -44,11 +42,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 mt-auto">
-        <Button className="w-full text-xs font-mono uppercase bg-[#FFFF00] text-black hover:bg-yellow-400 border-none rounded-none">
-          + NEW ANCHOR
-        </Button>
-      </div>
     </aside>
   )
 }
