@@ -173,3 +173,28 @@ export async function deleteTask(req: Request, res: Response): Promise<void> {
 
   res.status(204).send();
 }
+
+/**
+ * DELETE /api/tasks
+ * Delete ALL tasks for the authenticated user on a given date.
+ * Requires ?date=YYYY-MM-DD query param.
+ */
+export async function deleteAllTasksForDate(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const date = typeof req.query["date"] === "string" ? req.query["date"] : undefined;
+
+  if (!date) throw new AppError(400, "date query param is required (YYYY-MM-DD)");
+
+  const dayStart = new Date(date);
+  const dayEnd = new Date(date);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+
+  const { count } = await prisma.task.deleteMany({
+    where: {
+      userId,
+      startTime: { gte: dayStart, lt: dayEnd },
+    },
+  });
+
+  res.json({ deleted: count });
+}
