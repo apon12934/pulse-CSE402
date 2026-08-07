@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button, cn, Modal, Input, Select } from '@pulse/ui';
-import { Lock, ChevronLeft, ChevronRight, GripVertical, Sparkles, Trash2 } from 'lucide-react';
-import { apiPost } from '@/lib/api';
+import { Lock, ChevronLeft, ChevronRight, GripVertical, Trash2, CalendarPlus } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useTaskStore } from '@/store/tasks';
 import { TimelineBlock } from '@/components/timeline/TimelineBlock';
@@ -24,7 +23,6 @@ function formatHour(h: number): string {
 export default function TimelinePage() {
   const { tasks, fetchTasks, deleteTask, error: storeError } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isGenerating, setIsGenerating] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const { token } = useAuthStore();
@@ -33,25 +31,6 @@ export default function TimelinePage() {
     fetchTasks(currentDate);
   }, [currentDate, token, fetchTasks]);
 
-  const handleGenerate = async () => {
-    if (!token) return;
-    setIsGenerating(true);
-    setLocalError(null);
-    try {
-      const dateStr = currentDate.toISOString().split('T')[0];
-      const res = await apiPost<{ schedule: any[] }>('/api/schedule/generate', {
-        date: dateStr,
-        energyLevel: 'Medium'
-      });
-      // Refresh tasks
-      await fetchTasks(currentDate);
-    } catch (err: any) {
-      console.error('Failed to generate schedule:', err);
-      setLocalError(err.message || 'Generation failed');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -154,10 +133,6 @@ export default function TimelinePage() {
 
           <Button variant="ghost" size="md" onClick={() => setIsCreateModalOpen(true)}>
             + NEW TASK
-          </Button>
-          <Button variant="primary" size="md" onClick={handleGenerate} disabled={isGenerating}>
-            <Sparkles className="w-4 h-4 mr-2" />
-            {isGenerating ? 'GENERATING...' : 'GENERATE AI ROUTINE'}
           </Button>
         </div>
       </div>
@@ -272,12 +247,12 @@ export default function TimelinePage() {
 
             {tasks.length === 0 && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 border border-[#262626] rounded-full flex items-center justify-center mb-4">
-                  <Sparkles className="w-6 h-6 text-[#666]" />
+                <div className="w-16 h-16 border border-[#262626] flex items-center justify-center mb-4">
+                  <CalendarPlus className="w-6 h-6 text-[#666]" />
                 </div>
                 <h3 className="font-sans text-xl text-white font-medium mb-2">No tasks scheduled</h3>
                 <p className="font-mono text-xs text-[#666] uppercase tracking-widest max-w-sm leading-relaxed">
-                  Generate an AI routine or manually add anchor blocks to begin your day.
+                  Use the Chat to build your AI routine, or click + New Task to add a block manually.
                 </p>
               </div>
             )}
