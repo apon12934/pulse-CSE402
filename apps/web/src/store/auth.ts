@@ -6,6 +6,7 @@ interface User {
   name: string;
   email: string;
   tier: string;
+  avatarUrl?: string | null;
   geminiApiKey?: string | null;
   rescheduleStrategy?: string;
 }
@@ -17,6 +18,7 @@ interface AuthState {
   login: (user: User, token: string) => void;
   logout: () => void;
   hydrate: (user: User) => void;
+  updateAvatarUrl: (url: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -33,5 +35,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   hydrate: (user) => {
     set({ user, isLoading: false });
+  },
+  updateAvatarUrl: (url) => {
+    set((state) => ({
+      user: state.user ? { ...state.user, avatarUrl: url } : null
+    }));
   },
 }));

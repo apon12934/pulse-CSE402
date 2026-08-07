@@ -5,12 +5,13 @@
 // ─────────────────────────────────────────────────────────────
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 // ─── Enums ────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ model User {
   password  String   @db.VarChar(255)
   tier               UserTier @default(Free)
   geminiApiKey       String?  @map("gemini_api_key")
+  avatarUrl          String?  @map("avatar_url")
   rescheduleStrategy String   @default("BALANCED") @map("reschedule_strategy")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")

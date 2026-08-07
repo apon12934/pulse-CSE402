@@ -41,3 +41,4 @@ yarn-error.log*
 
 # Coverage
 coverage/
+apps/api/src/generated/

@@ -44,18 +44,19 @@ RULES:
 RESPONSE FORMAT:
 Return ONLY valid JSON. Same array format as the scheduler. Include ALL remaining tasks for the day (not just the changed ones), with updated times.`;
 
-const CHAT_PARSE_SYSTEM_PROMPT = `You are Pulse's natural language parser. The user sends informal messages about their day. Extract structured task data.
+const CHAT_PARSE_SYSTEM_PROMPT = `You are Pulse, an intelligent, conversational AI scheduling assistant.
+The user will chat with you about their day. Your goal is to draft their schedule.
 
 RULES:
-1. Identify tasks, their approximate durations, and any timing constraints.
-2. Detect energy cues: "I'm tired" → Low, "feeling great" → High, neutral → Medium.
-3. Detect priority cues: "important", "must do", "critical" → high priority (7-10). "maybe", "if I have time" → low priority (1-3). Default → medium (4-6).
-4. Detect task type: anything with a fixed time ("class at 2pm", "meeting at 10") → Anchor. Everything else → Fluid.
+1. Act like a real intelligence. If the user gives vague instructions ("I need to study"), ASK clarifying questions ("What time? How long?").
+2. If the user provides enough information, generate a draft schedule.
+3. Only when the user EXPLICITLY APPROVES the draft (e.g., "looks good", "approve", "do it"), change your status to "approved".
 
 RESPONSE FORMAT:
-Return ONLY valid JSON:
+Return ONLY valid JSON. No markdown wrappers.
 {
-  "energyLevel": "High" | "Medium" | "Low",
+  "reply": "Your natural language response to the user.",
+  "status": "chatting" | "draft" | "approved",
   "tasks": [
     {
       "title": "string",
@@ -65,7 +66,7 @@ Return ONLY valid JSON:
       "priority": number,
       "energyLevel": "High" | "Medium" | "Low"
     }
-  ]
+  ] // Include tasks array ONLY if status is 'draft' or 'approved'
 }`;
 
 export type ScheduleItem = {
@@ -79,8 +80,9 @@ export type ScheduleItem = {
 };
 
 export type ParsedChatInput = {
-  energyLevel: "High" | "Medium" | "Low";
-  tasks: {
+  reply: string;
+  status: "chatting" | "draft" | "approved";
+  tasks?: {
     title: string;
     type: "Anchor" | "Fluid";
     durationMinutes: number;
@@ -95,7 +97,7 @@ export type ParsedChatInput = {
  */
 async function callGemini<T>(systemPrompt: string, userMessage: string): Promise<T> {
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-flash-latest",
     contents: userMessage,
     config: {
       systemInstruction: systemPrompt,
@@ -147,12 +149,36 @@ export async function reschedule(
 }
 
 /**
- * Parse natural language chat input into structured task data.
+ * Converse naturally using chat history.
  */
-export async function parseChatInput(
-  message: string,
+export async function converseSchedule(
+  messages: { role: "user" | "model"; content: string }[],
   date: string,
 ): Promise<ParsedChatInput> {
-  const userMessage = JSON.stringify({ message, date });
-  return callGemini<ParsedChatInput>(CHAT_PARSE_SYSTEM_PROMPT, userMessage);
+  const contents = messages.map(m => ({
+    role: m.role,
+    parts: [{ text: m.content }]
+  }));
+
+  const response = await ai.models.generateContent({
+    model: "gemini-flash-latest",
+    contents,
+    config: {
+      systemInstruction: `${CHAT_PARSE_SYSTEM_PROMPT}\nCurrent Date Context: ${date}`,
+      temperature: 0.2,
+      responseMimeType: "application/json",
+    },
+  });
+
+  const text = response.text ?? "";
+  try {
+    return JSON.parse(text) as ParsedChatInput;
+  } catch (e) {
+    console.error("Failed to parse Gemini JSON output:", text);
+    return {
+      reply: "I had trouble formatting that. Could you repeat?",
+      status: "chatting",
+    };
+  }
 }
+
