@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, Settings, LogOut, Menu, MessageSquare } from 'lucide-react'
+import { LogOut, Menu, MessageSquare } from 'lucide-react'
 import { cn } from '@pulse/ui'
 import { useAuthStore } from '@/store/auth'
 import { useLayoutStore } from '@/store/layout'
@@ -102,12 +102,6 @@ export function Header() {
           className="lg:hidden text-[#888] hover:text-[#FFFF00] transition-colors"
         >
           <MessageSquare className="w-4 h-4" />
-        </button>
-        <button className="hidden sm:block text-[#888] hover:text-white transition-colors">
-          <Bell className="w-4 h-4" />
-        </button>
-        <button className="hidden sm:block text-[#888] hover:text-white transition-colors">
-          <Settings className="w-4 h-4" />
         </button>
         <button 
           onClick={handleLogout}
