@@ -81,25 +81,15 @@ export function EditTaskModal({ task, isOpen, onClose, currentDate }: EditTaskMo
           required
           autoFocus
         />
-        <div className="grid grid-cols-2 gap-4">
-          <Select
-            label="Type"
-            value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
-          >
-            <option value="Anchor">Anchor (Fixed)</option>
-            <option value="Fluid">Fluid (AI Flexible)</option>
-          </Select>
-          <Select
-            label="Energy Level"
-            value={form.energyLevel}
-            onChange={(e) => setForm({ ...form, energyLevel: e.target.value })}
-          >
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </Select>
-        </div>
+        <Select
+          label="Energy Level"
+          value={form.energyLevel}
+          onChange={(e) => setForm({ ...form, energyLevel: e.target.value })}
+        >
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </Select>
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Start Time"

@@ -42,7 +42,7 @@ export default function TimelinePage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
-    type: 'Anchor',
+    type: 'Fluid',
     energyLevel: 'Medium',
     priority: 1,
     startHour: '09:00',
@@ -173,25 +173,15 @@ export default function TimelinePage() {
             required
             autoFocus
           />
-          <div className="grid grid-cols-2 gap-4">
-            <Select 
-              label="Type" 
-              value={newTask.type} 
-              onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
-            >
-              <option value="Anchor">Anchor (Fixed)</option>
-              <option value="Fluid">Fluid (AI Flexible)</option>
-            </Select>
-            <Select 
-              label="Energy Level" 
-              value={newTask.energyLevel} 
-              onChange={(e) => setNewTask({ ...newTask, energyLevel: e.target.value })}
-            >
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </Select>
-          </div>
+          <Select 
+            label="Energy Level" 
+            value={newTask.energyLevel} 
+            onChange={(e) => setNewTask({ ...newTask, energyLevel: e.target.value })}
+          >
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </Select>
           <div className="grid grid-cols-2 gap-4">
             <Input 
               label="Start Time" 
