@@ -37,14 +37,13 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
         )}
         {tasks.map((task, i) => {
           const isCompleted = task.status === 'Completed';
-          const isAnchor = task.type === 'Anchor';
+          if (isCompleted) return null;
 
           return (
             <div key={task.id} className="flex flex-col">
               {i > 0 && <div className="h-[1px] w-full bg-[#262626]" />}
               <div className={cn(
                 "flex items-center gap-4 py-4 group hover:bg-[#1A1A1A] transition-none px-4 -mx-4",
-                isCompleted && "opacity-50"
               )}>
                 {/* Time column — start → end */}
                 <div className={cn(
@@ -63,19 +62,6 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <span className={cn(
-                    "font-mono text-[10px] px-1.5 py-0.5 uppercase tracking-wider border",
-                    isAnchor 
-                      ? "text-[#FFFF00] bg-[#FFFF00]/10 border-[#FFFF00]/20" 
-                      : "text-[#A3A3A3] bg-[#262626] border-transparent"
-                  )}>
-                    {task.type}
-                  </span>
-                  {isAnchor ? (
-                    <Lock className="w-4 h-4 text-[#666]" />
-                  ) : (
-                    <GripVertical className="w-4 h-4 text-[#666]" />
-                  )}
                   <button
                     onClick={() => setEditingTask(task)}
                     className="text-[#666] hover:text-[#FFFF00] transition-colors opacity-0 group-hover:opacity-100"
