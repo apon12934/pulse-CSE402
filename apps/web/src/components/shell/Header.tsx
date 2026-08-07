@@ -65,13 +65,7 @@ export function Header() {
         <span className="text-[#FFFF00] font-sans font-bold text-lg tracking-wider">PULSE</span>
       </div>
       
-      <div className="flex items-center">
-        <div className="flex font-mono text-[11px] font-bold">
-          <button className="px-4 py-1.5 border border-[#262626] text-[#888] bg-transparent border-r-0 hover:text-white transition-colors">LOW</button>
-          <button className="px-4 py-1.5 border border-[#FFFF00] text-black bg-[#FFFF00]">MED</button>
-          <button className="px-4 py-1.5 border border-[#262626] text-[#888] bg-transparent border-l-0 hover:text-white transition-colors">HIGH</button>
-        </div>
-      </div>
+
 
       <div className="flex items-center gap-4">
         {user && (
