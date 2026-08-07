@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Input, Button, StatusChip } from '@pulse/ui';
+import { PasswordField } from '@/components/ui/PasswordField';
 import { apiPost } from '../../lib/api';
 import { useAuthStore } from '../../store/auth';
 
@@ -70,14 +71,17 @@ export default function LoginPage() {
               required
             />
             
-            <Input
-              label="PASSWORD"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="font-mono text-[12px] font-medium leading-4 tracking-[0.05em] uppercase text-[#888]">
+                PASSWORD
+              </label>
+              <PasswordField
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
             {error && (
               <div className="border border-[#FF4444] bg-[#FF4444]/10 p-3">

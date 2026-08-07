@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth';
 import { Button } from '@pulse/ui';
 import { Loader2, Upload, AlertTriangle } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { PasswordField } from '@/components/ui/PasswordField';
 import { apiPatch, apiDelete, apiPost } from '@/lib/api';
 import { useTaskStore } from '@/store/tasks';
 
@@ -18,6 +19,7 @@ export default function SettingsPage() {
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState('');
 
@@ -119,7 +121,11 @@ export default function SettingsPage() {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentPassword || !newPassword) return;
+    if (!currentPassword || !newPassword || !confirmNewPassword) return;
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMsg("New passwords don't match.");
+      return;
+    }
     setIsUpdatingPassword(true);
     setPasswordMsg('');
     try {
@@ -127,6 +133,7 @@ export default function SettingsPage() {
       setPasswordMsg('Password updated.');
       setCurrentPassword('');
       setNewPassword('');
+      setConfirmNewPassword('');
     } catch (err: any) {
       setPasswordMsg(err.message || 'Failed to update password.');
     } finally {
@@ -239,26 +246,29 @@ export default function SettingsPage() {
           <form onSubmit={handleUpdatePassword} className="space-y-4 max-w-md">
             <div>
               <label className="block text-[#888] font-mono text-[10px] uppercase tracking-wider mb-2">Current Password</label>
-              <input 
-                type="password" 
+              <PasswordField 
                 value={currentPassword}
                 onChange={e => setCurrentPassword(e.target.value)}
-                className="w-full bg-[#1A1A1A] border border-[#262626] text-white p-3 font-mono text-sm focus:outline-none focus:border-[#FFFF00] rounded-none transition-colors"
               />
             </div>
             <div>
               <label className="block text-[#888] font-mono text-[10px] uppercase tracking-wider mb-2">New Password</label>
-              <input 
-                type="password" 
+              <PasswordField 
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
-                className="w-full bg-[#1A1A1A] border border-[#262626] text-white p-3 font-mono text-sm focus:outline-none focus:border-[#FFFF00] rounded-none transition-colors"
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-[#888] font-mono text-[10px] uppercase tracking-wider mb-2">Confirm New Password</label>
+              <PasswordField 
+                value={confirmNewPassword}
+                onChange={e => setConfirmNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-2">
               <Button 
                 type="submit"
-                disabled={isUpdatingPassword || !currentPassword || !newPassword}
+                disabled={isUpdatingPassword || !currentPassword || !newPassword || !confirmNewPassword}
                 className="bg-[#1A1A1A] border border-[#333] text-white hover:bg-[#262626] rounded-none font-mono tracking-widest uppercase text-xs h-10 px-8 shadow-none"
               >
                 {isUpdatingPassword ? 'Updating...' : 'Update Password'}
@@ -284,7 +294,7 @@ export default function SettingsPage() {
               </div>
               <Button 
                 onClick={() => setClearModalOpen(true)}
-                className="bg-transparent border border-[#FF4444] text-[#FF4444] hover:bg-[#FF4444] hover:text-white rounded-none font-mono tracking-widest uppercase text-[10px] h-8 shadow-none shrink-0"
+                className="bg-[#FF4444] text-white hover:bg-[#FF4444]/80 rounded-none font-mono tracking-widest uppercase text-[10px] h-8 shadow-none shrink-0"
               >
                 Clear Data
               </Button>
