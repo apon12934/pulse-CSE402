@@ -8,6 +8,7 @@ import {
   getTask,
   updateTask,
   deleteTask,
+  deleteAllTasksForDate,
 } from "../controllers/task.controller.js";
 
 const router = Router();
@@ -19,6 +20,7 @@ router.post("/", validate(createTaskSchema), createTask);
 router.get("/", listTasks);
 router.get("/:id", getTask);
 router.patch("/:id", validate(updateTaskSchema), updateTask);
+router.delete("/", deleteAllTasksForDate);
 router.delete("/:id", deleteTask);
 
 export default router;

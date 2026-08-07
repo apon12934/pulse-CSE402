@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button, cn, Modal, Input, Select } from '@pulse/ui';
 import { Lock, ChevronLeft, ChevronRight, GripVertical, Trash2, CalendarPlus } from 'lucide-react';
+import { apiPost } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useTaskStore } from '@/store/tasks';
 import { TimelineBlock } from '@/components/timeline/TimelineBlock';
@@ -21,7 +22,7 @@ function formatHour(h: number): string {
 
 /* ─── Page Component ───────────────────────────── */
 export default function TimelinePage() {
-  const { tasks, fetchTasks, deleteTask, error: storeError } = useTaskStore();
+  const { tasks, fetchTasks, deleteTask, clearDay, error: storeError } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
@@ -130,6 +131,21 @@ export default function TimelinePage() {
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
+
+          {tasks.length > 0 && (
+            <button
+              onClick={async () => {
+                if (window.confirm(`Clear all ${tasks.length} task(s) for ${dateLabel}? This cannot be undone.`)) {
+                  await clearDay(currentDate);
+                }
+              }}
+              className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[#666] hover:text-red-500 border border-[#262626] hover:border-red-500/50 px-3 py-2 transition-colors"
+              title="Reset — delete all tasks for this day"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              RESET DAY
+            </button>
+          )}
 
           <Button variant="ghost" size="md" onClick={() => setIsCreateModalOpen(true)}>
             + NEW TASK
