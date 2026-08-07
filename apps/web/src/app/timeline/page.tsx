@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Button, cn, Modal, Input, Select } from '@pulse/ui';
-import { Lock, ChevronLeft, ChevronRight, GripVertical, Sparkles, Trash2 } from 'lucide-react';
+import { Lock, ChevronLeft, ChevronRight, GripVertical, Trash2, CalendarPlus } from 'lucide-react';
 import { apiPost } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useTaskStore } from '@/store/tasks';
 import { TimelineBlock } from '@/components/timeline/TimelineBlock';
+import { EditTaskModal } from '@/components/shared/EditTaskModal';
 
 /* ─── Time Grid Config ─────────────────────────── */
 // We'll compute these dynamically inside the component now
@@ -21,40 +22,28 @@ function formatHour(h: number): string {
 
 /* ─── Page Component ───────────────────────────── */
 export default function TimelinePage() {
-  const { tasks, fetchTasks, deleteTask, error: storeError } = useTaskStore();
+  const { tasks, fetchTasks, deleteTask, clearDay, error: storeError } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [now, setNow] = useState(new Date());
   const [localError, setLocalError] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
+  
   const { token } = useAuthStore();
 
   useEffect(() => {
     fetchTasks(currentDate);
   }, [currentDate, token, fetchTasks]);
 
-  const handleGenerate = async () => {
-    if (!token) return;
-    setIsGenerating(true);
-    setLocalError(null);
-    try {
-      const dateStr = currentDate.toISOString().split('T')[0];
-      const res = await apiPost<{ schedule: any[] }>('/api/schedule/generate', {
-        date: dateStr,
-        energyLevel: 'Medium'
-      });
-      // Refresh tasks
-      await fetchTasks(currentDate);
-    } catch (err: any) {
-      console.error('Failed to generate schedule:', err);
-      setLocalError(err.message || 'Generation failed');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
-    type: 'Anchor',
+    type: 'Fluid',
     energyLevel: 'Medium',
     priority: 1,
     startHour: '09:00',
@@ -91,6 +80,25 @@ export default function TimelinePage() {
   };
 
   // Dynamic Hour Range Calculation
+  const [isReordering, setIsReordering] = useState(false);
+
+  const handleMove = async (block: any, newStartTimeISO: string) => {
+    setIsReordering(true);
+    try {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      await apiPost('/api/schedule/move', { 
+        taskId: block.id, 
+        newStartTime: newStartTimeISO,
+        date: dateStr 
+      });
+      await fetchTasks(currentDate);
+    } catch (err) {
+      console.error('Failed to move task:', err);
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
   const hourStart = tasks.length > 0 
     ? Math.max(0, Math.min(...tasks.map(t => new Date(t.startTime).getHours())) - 1)
     : 8;
@@ -150,12 +158,23 @@ export default function TimelinePage() {
             </button>
           </div>
 
+          {tasks.length > 0 && (
+            <button
+              onClick={async () => {
+                if (window.confirm(`Clear all ${tasks.length} task(s) for ${dateLabel}? This cannot be undone.`)) {
+                  await clearDay(currentDate);
+                }
+              }}
+              className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[#666] hover:text-red-500 border border-[#262626] hover:border-red-500/50 px-3 py-2 transition-colors"
+              title="Reset — delete all tasks for this day"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              RESET DAY
+            </button>
+          )}
+
           <Button variant="ghost" size="md" onClick={() => setIsCreateModalOpen(true)}>
             + NEW TASK
-          </Button>
-          <Button variant="primary" size="md" onClick={handleGenerate} disabled={isGenerating}>
-            <Sparkles className="w-4 h-4 mr-2" />
-            {isGenerating ? 'GENERATING...' : 'GENERATE AI ROUTINE'}
           </Button>
         </div>
       </div>
@@ -174,25 +193,15 @@ export default function TimelinePage() {
             required
             autoFocus
           />
-          <div className="grid grid-cols-2 gap-4">
-            <Select 
-              label="Type" 
-              value={newTask.type} 
-              onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
-            >
-              <option value="Anchor">Anchor (Fixed)</option>
-              <option value="Fluid">Fluid (AI Flexible)</option>
-            </Select>
-            <Select 
-              label="Energy Level" 
-              value={newTask.energyLevel} 
-              onChange={(e) => setNewTask({ ...newTask, energyLevel: e.target.value })}
-            >
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </Select>
-          </div>
+          <Select 
+            label="Energy Level" 
+            value={newTask.energyLevel} 
+            onChange={(e) => setNewTask({ ...newTask, energyLevel: e.target.value })}
+          >
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </Select>
           <div className="grid grid-cols-2 gap-4">
             <Input 
               label="Start Time" 
@@ -254,33 +263,75 @@ export default function TimelinePage() {
                 style={{ top: (h - hourStart) * HOUR_HEIGHT }}
               />
             ))}
+            {/* Current Time Indicator */}
+            {currentDate.toDateString() === now.toDateString() && (() => {
+              const h = now.getHours();
+              const m = now.getMinutes();
+              if (h < hourStart) return null;
+              const topOffset = (h - hourStart + m / 60) * HOUR_HEIGHT;
+              
+              return (
+                <div 
+                  className="absolute left-0 w-full z-30 pointer-events-none flex items-center"
+                  style={{ top: topOffset }}
+                >
+                  <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                  <div className="flex-1 h-px bg-red-500/80 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
+                </div>
+              );
+            })()}
 
-            {tasks.map((block) => (
-              <TimelineBlock
-                key={block.id}
-                block={block}
-                hourStart={hourStart}
-                hourHeight={HOUR_HEIGHT}
-                totalHeight={totalHeight}
-                onDelete={deleteTask}
-                onRefresh={() => fetchTasks(currentDate)}
-              />
-            ))}
+            {/* Blocks */}
+            {isReordering && (
+              <div className="absolute inset-0 z-40 bg-[#121212]/80 backdrop-blur-sm flex flex-col items-center justify-center">
+                <div className="font-mono text-[10px] text-[#FFFF00] uppercase tracking-[0.2em] animate-pulse flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-ping" />
+                  AI REBUILDING SCHEDULE...
+                </div>
+              </div>
+            )}
+            
+            {tasks.map((block) => {
+              const durationHours = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 3600000;
+              const baseZIndex = Math.max(1, Math.round(100 - durationHours * 10)); // Shorter tasks get higher z-index
+
+              return (
+                <TimelineBlock
+                  key={block.id}
+                  block={block}
+                  hourStart={hourStart}
+                  hourHeight={HOUR_HEIGHT}
+                  totalHeight={totalHeight}
+                  onDelete={deleteTask}
+                  onEdit={setEditingTask}
+                  onRefresh={() => fetchTasks(currentDate)}
+                  onMove={handleMove}
+                  baseZIndex={baseZIndex}
+                />
+              );
+            })}
 
             {tasks.length === 0 && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 border border-[#262626] rounded-full flex items-center justify-center mb-4">
-                  <Sparkles className="w-6 h-6 text-[#666]" />
+                <div className="w-16 h-16 border border-[#262626] flex items-center justify-center mb-4">
+                  <CalendarPlus className="w-6 h-6 text-[#666]" />
                 </div>
                 <h3 className="font-sans text-xl text-white font-medium mb-2">No tasks scheduled</h3>
                 <p className="font-mono text-xs text-[#666] uppercase tracking-widest max-w-sm leading-relaxed">
-                  Generate an AI routine or manually add anchor blocks to begin your day.
+                  Use the Chat to build your AI routine, or click + New Task to add a block manually.
                 </p>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      <EditTaskModal
+        task={editingTask}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        currentDate={currentDate}
+      />
     </div>
   );
 }

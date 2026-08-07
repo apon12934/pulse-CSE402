@@ -41,7 +41,8 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     return {} as T;
   }
   
-  return response.json();
+  const text = await response.text();
+  return (text ? JSON.parse(text) : {}) as T;
 }
 
 export function apiGet<T>(path: string) {
