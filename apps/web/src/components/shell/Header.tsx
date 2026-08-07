@@ -42,9 +42,6 @@ export function Header() {
               )}
             </div>
             <span className="hidden sm:block text-white text-sm font-medium">{user.name}</span>
-            <span className="px-1.5 py-0.5 border border-[#262626] bg-[#1a1a1a] text-[#888] font-mono text-[10px]">
-              {user.tier ? user.tier.toUpperCase() : 'FREE'}
-            </span>
           </div>
         )}
         <div className="w-px h-6 bg-[#262626] mx-1"></div>
