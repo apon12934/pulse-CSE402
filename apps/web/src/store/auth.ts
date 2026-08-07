@@ -5,6 +5,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  username?: string | null;
   tier: string;
   avatarUrl?: string | null;
   geminiApiKey?: string | null;

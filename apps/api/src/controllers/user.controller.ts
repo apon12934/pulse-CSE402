@@ -9,20 +9,38 @@ import bcrypt from "bcryptjs";
  */
 export async function updateProfile(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { name, geminiApiKey, rescheduleStrategy } = req.body as {
+  const { name, email, username, geminiApiKey, rescheduleStrategy } = req.body as {
     name?: string;
+    email?: string;
+    username?: string;
     geminiApiKey?: string | null;
     rescheduleStrategy?: string;
   };
+
+  if (email) {
+    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    if (existingEmail && existingEmail.id !== userId) {
+      throw new AppError(409, "This email is already in use by another account.");
+    }
+  }
+
+  if (username) {
+    const existingUsername = await prisma.user.findUnique({ where: { username } });
+    if (existingUsername && existingUsername.id !== userId) {
+      throw new AppError(409, "This username is already taken.");
+    }
+  }
 
   const user = await prisma.user.update({
     where: { id: userId },
     data: {
       ...(name !== undefined && { name }),
+      ...(email !== undefined && { email }),
+      ...(username !== undefined && { username }),
       ...(geminiApiKey !== undefined && { geminiApiKey }),
       ...(rescheduleStrategy !== undefined && { rescheduleStrategy }),
     },
-    select: { id: true, name: true, email: true, tier: true, geminiApiKey: true, rescheduleStrategy: true, avatarUrl: true, createdAt: true },
+    select: { id: true, name: true, email: true, username: true, tier: true, geminiApiKey: true, rescheduleStrategy: true, avatarUrl: true, createdAt: true },
   });
 
   res.json({ user });
@@ -46,7 +64,7 @@ export async function uploadAvatar(req: Request, res: Response): Promise<void> {
   const user = await prisma.user.update({
     where: { id: userId },
     data: { avatarUrl },
-    select: { id: true, name: true, email: true, tier: true, avatarUrl: true },
+    select: { id: true, name: true, email: true, username: true, tier: true, avatarUrl: true },
   });
 
   res.json({ user });

@@ -10,7 +10,7 @@ import { useAuthStore } from '../../store/auth';
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('apon@university.edu');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,11 +63,11 @@ export default function LoginPage() {
             )}
             
             <Input
-              label="EMAIL ADDRESS"
-              type="email"
+              label={isLogin ? "EMAIL OR USERNAME" : "EMAIL ADDRESS"}
+              type={isLogin ? "text" : "email"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="apon@university.edu"
+              placeholder={isLogin ? "apon@university.edu or apon123" : "apon@university.edu"}
               required
             />
             
