@@ -43,6 +43,7 @@ export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDel
 
   const [height, setHeight] = useState(initialHeight);
   const [isResizing, setIsResizing] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
   const startYRef = useRef(0);
   const startHeightRef = useRef(0);
 
@@ -78,6 +79,7 @@ export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDel
       const newDurationMs = (height / hourHeight) * 3600000;
       const newEndTime = new Date(new Date(block.startTime).getTime() + newDurationMs);
 
+      setIsRecalculating(true);
       try {
         await apiPost('/api/schedule/reschedule', { 
           taskId: block.id, 
@@ -87,6 +89,8 @@ export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDel
       } catch (err) {
         console.error('Failed to update task duration', err);
         setHeight(initialHeight);
+      } finally {
+        setIsRecalculating(false);
       }
     };
 
@@ -146,6 +150,14 @@ export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDel
           </div>
         </div>
 
+        {isRecalculating && (
+          <div className="absolute inset-0 bg-[#1A1A1A]/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center border border-[#FFFF00]">
+            <div className="font-mono text-[10px] text-[#FFFF00] uppercase tracking-[0.2em] animate-pulse flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-ping" />
+              AI RECALCULATING...
+            </div>
+          </div>
+        )}
 
         {/* Resize handle */}
         <div
