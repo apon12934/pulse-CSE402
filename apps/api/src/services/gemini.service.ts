@@ -46,8 +46,9 @@ RULES:
 5. Compress breaks to a minimum of 5 minutes if needed.
 6. If a low-priority task cannot fit, mark its status as "Overdue" and set startTime/endTime to null.
 7. PRESERVE DURATIONS: If tasks are pushed down, shift them into available empty time slots BEFORE shrinking them. You must utilize empty calendar space. Shrink a task ONLY as an absolute last resort.
-8. Preserve the original order of remaining tasks where possible.
-9. Keep energy-level alignment intact — don't put a High-energy task in a Low-energy slot.
+8. CONTIGUOUS SCHEDULE: Do not leave ANY empty gaps (white space) between tasks. Pull upcoming tasks forward or stretch flexible tasks to eliminate gaps. The schedule must be back-to-back.
+9. Preserve the original order of remaining tasks where possible.
+10. Keep energy-level alignment intact — don't put a High-energy task in a Low-energy slot.
 
 RESPONSE FORMAT:
 Return ONLY valid JSON. Same array format as the scheduler. Include ALL remaining tasks for the day (not just the changed ones), with updated times.`;
@@ -74,8 +75,9 @@ RULES:
 4. INTELLIGENT OVERLAPPING: If a short task (like a meal, break, or quick errand) is moved to overlap with a long continuous block (like 'Work' or 'Study'), DO NOT push the long block down. ALLOW them to overlap, meaning the short task happens *during* the long task. 
 5. ONLY push tasks down if their semantic meanings dictate they are mutually exclusive.
 6. PRESERVE DURATIONS: If tasks are pushed down, shift them into available empty time slots BEFORE shrinking them. You must utilize empty calendar space. Shrink a task ONLY as an absolute last resort.
-7. Leave a 5-10 minute buffer between mutually exclusive tasks.
-8. Preserve the original chronological order of the remaining tasks as much as possible.
+7. CONTIGUOUS SCHEDULE: Do not leave ANY empty gaps (white space) between tasks unless absolutely necessary. Pull upcoming tasks forward to fill empty space, or stretch a flexible task to eliminate the gap. The schedule should be back-to-back.
+8. Leave a 5-10 minute buffer between mutually exclusive tasks.
+9. Preserve the original chronological order of the remaining tasks as much as possible.
 
 RESPONSE FORMAT:
 Return ONLY valid JSON. Same array format as the scheduler. Include ALL tasks (including the moved one) with their new times.`;
