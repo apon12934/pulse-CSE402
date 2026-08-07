@@ -161,12 +161,12 @@ export default function TimelinePage() {
           {tasks.length > 0 && (
             <button
               onClick={async () => {
-                if (window.confirm(`Clear all ${tasks.length} task(s) for ${dateLabel}? This cannot be undone.`)) {
+                if (window.confirm(`Reset ${dateLabel} back to your weekly routine? Custom tasks will be lost.`)) {
                   await clearDay(currentDate);
                 }
               }}
               className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[#666] hover:text-red-500 border border-[#262626] hover:border-red-500/50 px-3 py-2 transition-colors"
-              title="Reset — delete all tasks for this day"
+              title="Reset — restore tasks to your weekly template"
             >
               <Trash2 className="w-3.5 h-3.5" />
               RESET DAY

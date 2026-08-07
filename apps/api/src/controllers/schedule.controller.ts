@@ -355,3 +355,59 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
     tasks: createdTasks,
   });
 }
+
+/**
+ * DELETE /api/schedule/reset-day
+ * Delete all tasks for the given date and restore from the Weekly Template if it exists.
+ */
+export async function resetDay(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const date = typeof req.query["date"] === "string" ? req.query["date"] : undefined;
+
+  if (!date) throw new AppError(400, "date query param is required (YYYY-MM-DD)");
+
+  const dayStart = new Date(date);
+  const dayEnd = new Date(date);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+
+  // 1. Delete all current tasks for that date
+  await prisma.task.deleteMany({
+    where: {
+      userId,
+      startTime: { gte: dayStart, lt: dayEnd },
+    },
+  });
+
+  // 2. Fetch template tasks for this day of the week
+  const dayOfWeek = dayStart.getDay();
+  const templates = await prisma.templateTask.findMany({
+    where: { userId, dayOfWeek },
+  });
+
+  // 3. If templates exist, restore them for this specific date
+  if (templates.length > 0) {
+    const instancesToCreate = templates.map((template) => {
+      const startTime = new Date(dayStart);
+      startTime.setHours(template.startHour, template.startMinute, 0, 0);
+
+      const endTime = new Date(dayStart);
+      endTime.setHours(template.endHour, template.endMinute, 0, 0);
+
+      return {
+        userId,
+        title: template.title,
+        type: template.type,
+        energyLevel: template.energyLevel,
+        priority: template.priority,
+        startTime,
+        endTime,
+        status: "Upcoming",
+        templateTaskId: template.id,
+      };
+    });
+
+    await prisma.task.createMany({ data: instancesToCreate as any });
+  }
+
+  res.json({ success: true, restored: templates.length });
+}

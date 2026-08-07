@@ -6,6 +6,7 @@ import {
   reorderTasks,
   moveTask,
   chatSchedule,
+  resetDay,
 } from "../controllers/schedule.controller.js";
 
 const router = Router();
@@ -18,5 +19,6 @@ router.post("/reschedule", dominoReschedule);
 router.post("/reorder", reorderTasks);
 router.post("/move", moveTask);
 router.post("/chat", chatSchedule);
+router.delete("/reset-day", resetDay);
 
 export default router;
