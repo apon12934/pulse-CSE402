@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation'
 const NAV_ITEMS = [
   { name: 'DASHBOARD', icon: LayoutGrid, path: '/' },
   { name: 'TIMELINE', icon: FileText, path: '/timeline' },
-  { name: 'ANALYTICS', icon: BarChart3, path: '/analytics' },
 ]
 
 export function Sidebar() {
