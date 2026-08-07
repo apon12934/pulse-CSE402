@@ -109,3 +109,10 @@
 *   Refactored `TimelinePage` to dynamically compute grid boundaries (`hourStart`, `hourEnd`) instead of hardcoding 8AM–11PM, ensuring extreme schedule variations render correctly.
 *   Implemented polished Empty States for `UpcomingPipeline` and `TimelinePage` matching the Swiss International Style aesthetic.
 *   Wired `Header.tsx` to display real authenticated user profiles and added robust error states globally.
+
+**[2026-08-07] [Antigravity / Gemini Experimental] Feature: Username Integration & Settings Refactor**
+*   **Database:** Added `username` to User schema in TiDB. Migrated AI chat context to the production PostgreSQL/TiDB database instead of holding it exclusively in local storage.
+*   **Settings Hub (`/settings`):** Built a dedicated settings dashboard providing UI for updating display name, email, and claiming a unique username.
+*   **Avatar Upload:** Implemented completely client-side intelligent 1:1 image cropping and WebP compression before uploading to Cloudinary, ensuring blisteringly fast image delivery.
+*   **Authentication Engine:** Upgraded `login` to check against either email or username natively. Repaired a critical bug in `loginSchema` where Zod actively rejected username strings by strictly enforcing `.email()` validation.
+*   **Security & Data:** Restyled Danger Zone buttons. Implemented custom `DELETE` typing validation modals for account deletion and data resets. Added animated Show/Hide toggles globally on all password fields.
