@@ -178,13 +178,12 @@ export function AiChatPanel() {
                             <div key={i} className="flex flex-col gap-1 bg-[#1A1A1A] p-2 border border-[#262626]">
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-white text-xs">{t.title}</span>
-                                <span className="text-[10px] text-gray-500 font-mono">{t.type}</span>
                               </div>
                               <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
                                 {start && end ? (
                                   <span>{fmt(start)} → {fmt(end)}</span>
                                 ) : (
-                                  <span>Fluid · {t.durationMinutes}m</span>
+                                  <span>{t.durationMinutes} min</span>
                                 )}
                               </div>
                             </div>
