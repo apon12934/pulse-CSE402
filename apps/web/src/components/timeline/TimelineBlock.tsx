@@ -35,13 +35,14 @@ interface TimelineBlockProps {
   onDelete: (id: string) => void;
   onEdit: (block: any) => void;
   onRefresh: () => void;
-  onMove: (block: any, newStartTimeISO: string) => void;
+  onMove: (block: any, newStartTimeISO: string) => Promise<void>;
+  onError: (msg: string) => void;
   baseZIndex: number;
 }
 
 export function TimelineBlock({ 
   block, hourStart, hourHeight, totalHeight, onDelete, onEdit, onRefresh,
-  onMove, baseZIndex
+  onMove, onError, baseZIndex
 }: TimelineBlockProps) {
   const initialTop = timeToOffset(block.startTime, hourStart, hourHeight);
   const initialHeight = Math.max(timeToHeight(block.startTime, block.endTime, hourHeight), 40);
@@ -112,8 +113,14 @@ export function TimelineBlock({
             newEndTime: newEndTime.toISOString() 
           });
           onRefresh();
-        } catch (err) {
-          console.error('Failed to update task duration', err);
+        } catch (err: any) {
+          console.warn('Failed to update task duration', err);
+          const msg = err.message || 'Failed to update task duration';
+          if (msg.includes('429') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+            onError('AI Quota Exceeded. Please try again in a minute.');
+          } else {
+            onError('Failed to update task duration.');
+          }
           setHeight(initialHeight);
         } finally {
           setIsRecalculating(false);

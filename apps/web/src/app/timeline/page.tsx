@@ -92,8 +92,15 @@ export default function TimelinePage() {
         date: dateStr 
       });
       await fetchTasks(currentDate);
-    } catch (err) {
-      console.error('Failed to move task:', err);
+    } catch (err: any) {
+      console.warn('Failed to move task:', err);
+      const msg = err.message || 'Failed to move task';
+      if (msg.includes('429') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+        setLocalError('AI Quota Exceeded. Please try again in a minute.');
+      } else {
+        setLocalError('Failed to move task. Please try again.');
+      }
+      throw err; // Rethrow so TimelineBlock can snap back to initial position
     } finally {
       setIsReordering(false);
     }
@@ -306,6 +313,7 @@ export default function TimelinePage() {
                   onEdit={setEditingTask}
                   onRefresh={() => fetchTasks(currentDate)}
                   onMove={handleMove}
+                  onError={(msg) => setLocalError(msg)}
                   baseZIndex={baseZIndex}
                 />
               );
