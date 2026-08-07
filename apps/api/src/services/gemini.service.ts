@@ -4,18 +4,23 @@ const API_KEY = process.env["GEMINI_API_KEY"] ?? "";
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-const SCHEDULING_SYSTEM_PROMPT = `You are Pulse, an AI scheduling assistant. Your job is to build and adjust a user's daily timeline.
+function buildSchedulingSystemPrompt(nowISO: string): string {
+  return `You are Pulse, an AI scheduling assistant. Your job is to build and adjust a user's daily timeline.
+
+CURRENT WALL-CLOCK TIME: ${nowISO}
 
 RULES:
-1. "Anchors" are IMMOVABLE events (classes, meetings). Never move them.
-2. "Fluid Blocks" are flexible tasks the user wants to accomplish. Slot them into gaps around Anchors.
-3. Honor the user's reported energy level:
+1. "Anchors" are IMMOVABLE events (classes, meetings). Never move them — keep their exact startTime and endTime.
+2. "Fluid Blocks" are flexible tasks. Slot them into gaps around Anchors.
+3. CRITICAL: Never schedule any task to start before the CURRENT WALL-CLOCK TIME shown above. All new slots must be in the future.
+4. Default scheduling window is 07:00 to 23:00 local time. Never go outside this window unless an Anchor forces it.
+5. Honor the user's reported energy level:
    - High energy → schedule demanding/focus tasks (studying, deep work)
    - Medium energy → moderate tasks (emails, planning)
    - Low energy → passive tasks (reading, light admin)
-4. Always leave at least a 10-minute buffer between tasks.
-5. Never schedule anything before the user's earliest anchor or after midnight.
-6. Prioritize tasks by their priority field (higher number = more important).
+6. Always leave at least a 10-minute buffer between tasks.
+7. Prioritize tasks by their priority field (higher number = more important).
+8. If there are no anchors, start scheduling from the current time (rounded up to the next 15-min mark) or 09:00, whichever is later.
 
 RESPONSE FORMAT:
 Return ONLY valid JSON. No markdown, no explanation. The JSON must be an array of objects:
@@ -30,6 +35,7 @@ Return ONLY valid JSON. No markdown, no explanation. The JSON must be an array o
     "status": "Upcoming"
   }
 ]`;
+}
 
 const RESCHEDULE_SYSTEM_PROMPT = `You are Pulse's rescheduling engine. A task has overrun its allocated time. You must recalculate the remaining tasks for the day.
 
@@ -44,13 +50,17 @@ RULES:
 RESPONSE FORMAT:
 Return ONLY valid JSON. Same array format as the scheduler. Include ALL remaining tasks for the day (not just the changed ones), with updated times.`;
 
-const CHAT_PARSE_SYSTEM_PROMPT = `You are Pulse, an intelligent, conversational AI scheduling assistant.
+function buildChatSystemPrompt(nowISO: string, date: string): string {
+  return `You are Pulse, an intelligent, conversational AI scheduling assistant.
 The user will chat with you about their day. Your goal is to draft their schedule.
+CURRENT DATE: ${date}. CURRENT WALL-CLOCK TIME: ${nowISO}.
 
 RULES:
-1. Act like a real intelligence. If the user gives vague instructions ("I need to study"), ASK clarifying questions ("What time? How long?").
-2. If the user provides enough information, generate a draft schedule.
-3. Only when the user EXPLICITLY APPROVES the draft (e.g., "looks good", "approve", "do it"), change your status to "approved".
+1. Act like a real person. Ask clarifying questions if information is vague.
+2. If the user provides enough info, generate a draft schedule.
+3. CRITICAL: All fixedStartTime values must be after ${nowISO}. Never schedule in the past.
+4. Default to a 07:00-23:00 scheduling window.
+5. Only set status to "approved" when the user EXPLICITLY approves ("looks good", "yes", "do it").
 
 RESPONSE FORMAT:
 Return ONLY valid JSON. No markdown wrappers.
@@ -66,8 +76,9 @@ Return ONLY valid JSON. No markdown wrappers.
       "priority": number,
       "energyLevel": "High" | "Medium" | "Low"
     }
-  ] // Include tasks array ONLY if status is 'draft' or 'approved'
+  ]
 }`;
+}
 
 export type ScheduleItem = {
   title: string;
@@ -120,14 +131,16 @@ export async function generateSchedule(
   date: string,
   userEnergyLevel: string,
 ): Promise<ScheduleItem[]> {
+  const nowISO = new Date().toISOString();
   const userMessage = JSON.stringify({
     date,
+    currentTime: nowISO,
     userEnergyLevel,
     anchors,
     fluidTasks,
   });
 
-  return callGemini<ScheduleItem[]>(SCHEDULING_SYSTEM_PROMPT, userMessage);
+  return callGemini<ScheduleItem[]>(buildSchedulingSystemPrompt(nowISO), userMessage);
 }
 
 /**
@@ -156,6 +169,7 @@ export async function converseSchedule(
   messages: { role: "user" | "model"; content: string }[],
   date: string,
 ): Promise<ParsedChatInput> {
+  const nowISO = new Date().toISOString();
   const contents = messages.map(m => ({
     role: m.role,
     parts: [{ text: m.content }]
@@ -165,7 +179,7 @@ export async function converseSchedule(
     model: "gemini-flash-latest",
     contents,
     config: {
-      systemInstruction: `${CHAT_PARSE_SYSTEM_PROMPT}\nCurrent Date Context: ${date}`,
+      systemInstruction: buildChatSystemPrompt(nowISO, date),
       temperature: 0.2,
       responseMimeType: "application/json",
     },
@@ -173,7 +187,8 @@ export async function converseSchedule(
 
   const text = response.text ?? "";
   try {
-    return JSON.parse(text) as ParsedChatInput;
+    const cleaned = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+    return JSON.parse(cleaned) as ParsedChatInput;
   } catch (e) {
     console.error("Failed to parse Gemini JSON output:", text);
     return {

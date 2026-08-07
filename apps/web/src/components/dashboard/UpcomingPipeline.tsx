@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { StatusChip, cn } from '@pulse/ui';
-import { Lock, GripVertical, Trash2 } from 'lucide-react';
+import { Lock, GripVertical, Trash2, Pencil } from 'lucide-react';
 import { useTaskStore } from '@/store/tasks';
+import { EditTaskModal } from '@/components/shared/EditTaskModal';
 
 interface UpcomingPipelineProps {
   tasks: any[];
@@ -8,11 +10,14 @@ interface UpcomingPipelineProps {
 
 export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
   const { deleteTask } = useTaskStore();
+  const [editingTask, setEditingTask] = useState<any | null>(null);
 
   const formatTime = (isoString: string) => {
     const d = new Date(isoString);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
+
+  const currentDate = new Date();
 
   return (
     <div className="w-full h-full">
@@ -41,11 +46,13 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
                 "flex items-center gap-4 py-4 group hover:bg-[#1A1A1A] transition-none px-4 -mx-4",
                 isCompleted && "opacity-50"
               )}>
+                {/* Time column — start → end */}
                 <div className={cn(
-                  "w-20 whitespace-nowrap flex-shrink-0 font-mono text-sm",
+                  "w-36 shrink-0 flex flex-col font-mono text-xs",
                   isCompleted ? "text-[#666]" : "text-[#A3A3A3]"
                 )}>
-                  {formatTime(task.startTime)}
+                  <span className="text-white font-semibold">{formatTime(task.startTime)}</span>
+                  <span className="text-[#555]">→ {formatTime(task.endTime)}</span>
                 </div>
                 
                 <div className={cn(
@@ -69,9 +76,17 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
                   ) : (
                     <GripVertical className="w-4 h-4 text-[#666]" />
                   )}
+                  <button
+                    onClick={() => setEditingTask(task)}
+                    className="text-[#666] hover:text-[#FFFF00] transition-colors opacity-0 group-hover:opacity-100"
+                    title="Edit task"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                   <button 
                     onClick={() => deleteTask(task.id)}
-                    className="ml-2 text-[#666] hover:text-red-500 transition-colors"
+                    className="text-[#666] hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                    title="Delete task"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -81,6 +96,13 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
           );
         })}
       </div>
+
+      <EditTaskModal
+        task={editingTask}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        currentDate={currentDate}
+      />
     </div>
   );
 }
