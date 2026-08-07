@@ -13,7 +13,13 @@ export function AiChatPanel() {
   const [messages, setMessages] = useState<any[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('pulse_chat_history');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // ignore parsing error and return default
+        }
+      }
     }
     return [
       {
