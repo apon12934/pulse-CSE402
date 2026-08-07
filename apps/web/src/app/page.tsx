@@ -19,7 +19,7 @@ export default function DashboardPage() {
   }, [token, fetchTasks]);
 
   const activeTask = tasks.find(t => t.status === 'Running') || null;
-  const upcomingTasks = tasks.filter(t => t.status === 'Upcoming' || t.status === 'Completed').sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  const upcomingTasks = tasks.filter(t => t.status === 'Upcoming').sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   return (
     <div className="h-full bg-black text-white selection:bg-[#FFFF00] selection:text-black">
@@ -33,7 +33,7 @@ export default function DashboardPage() {
           {/* Blinking Cursor */}
           <div className="w-1 h-6 bg-[#FFFF00] animate-pulse mb-8" />
           
-          <ActiveTask task={activeTask} />
+          <ActiveTask task={activeTask} nextTask={upcomingTasks[0] || null} />
           
           <UpcomingPipeline tasks={upcomingTasks} />
         </div>

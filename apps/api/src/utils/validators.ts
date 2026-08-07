@@ -28,6 +28,7 @@ export const createTaskSchema = z.object({
   priority: z.number().int().min(0).max(10).optional().default(0),
   startTime: z.string().datetime({ message: "startTime must be ISO 8601" }),
   endTime: z.string().datetime({ message: "endTime must be ISO 8601" }),
+  status: z.enum(["Upcoming", "Running", "Completed", "Overdue"]).optional().default("Upcoming"),
   taskBlockId: z.string().nullable().optional(),
 });
 
