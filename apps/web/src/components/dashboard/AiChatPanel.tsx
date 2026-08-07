@@ -1,51 +1,60 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Check, X, Bot, SendHorizontal, Trash2 } from 'lucide-react';
+import { Check, X, Bot, SendHorizontal, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@pulse/ui';
-import { apiPost } from '@/lib/api';
+import { apiPost, apiGet, apiDelete } from '@/lib/api';
 import { format } from 'date-fns';
 
 import { useTaskStore } from '@/store/tasks';
 
 export function AiChatPanel() {
   const { fetchTasks } = useTaskStore();
-  const [messages, setMessages] = useState<any[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pulse_chat_history');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          // ignore parsing error and return default
-        }
-      }
-    }
-    return [
-      {
-        id: 'init',
-        role: 'ai',
-        text: 'Gemini Core initialized. Ready to draft your schedule. What are your goals today?',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-        status: 'chatting'
-      }
-    ];
-  });
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('pulse_chat_history', JSON.stringify(messages));
-  }, [messages]);
-
-  const clearChat = () => {
-    setMessages([
-      {
-        id: 'init',
-        role: 'ai',
-        text: 'Gemini Core initialized. Ready to draft your schedule. What are your goals today?',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-        status: 'chatting'
+    async function loadHistory() {
+      try {
+        const res = await apiGet<any>('/api/schedule/chat/history');
+        if (res.messages && res.messages.length > 0) {
+          setMessages(res.messages);
+        } else {
+          // Default init message if empty
+          setMessages([
+            {
+              id: 'init',
+              role: 'ai',
+              text: 'Gemini Core initialized. Ready to draft your schedule. What are your goals today?',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+              status: 'chatting'
+            }
+          ]);
+        }
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+      } finally {
+        setIsLoadingHistory(false);
       }
-    ]);
+    }
+    loadHistory();
+  }, []);
+
+  const clearChat = async () => {
+    try {
+      await apiDelete('/api/schedule/chat/history');
+      setMessages([
+        {
+          id: 'init',
+          role: 'ai',
+          text: 'Gemini Core initialized. Ready to draft your schedule. What are your goals today?',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          status: 'chatting'
+        }
+      ]);
+    } catch (err) {
+      console.error('Failed to clear chat history:', err);
+    }
   };
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,20 +77,11 @@ export function AiChatPanel() {
       const today = new Date();
       const dateStr = today.toISOString().split('T')[0];
       
-      const history = messages
-        .filter(m => m.role === 'user' || m.role === 'ai')
-        .map(m => ({
-          role: m.role === 'ai' ? 'model' : 'user',
-          content: m.text
-        }));
-      
-      history.push({ role: 'user', content: userMessage.text });
-
       const textarea = document.getElementById('chat-input') as HTMLTextAreaElement;
       if (textarea) textarea.style.height = 'auto';
 
       const response = await apiPost<any>('/api/schedule/chat', {
-        messages: history,
+        message: userMessage.text,
         date: dateStr
       });
 
@@ -144,10 +144,18 @@ export function AiChatPanel() {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg: any) => (
-          <div key={msg.id} className={`flex flex-col gap-1 w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+      {/* Message List */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {isLoadingHistory ? (
+          <div className="flex flex-col gap-1 w-full items-start">
+            <div className="bg-[#121212] border border-[#262626] border-l-2 border-l-[#FFFF00] p-4 text-sm max-w-[80%] flex items-center justify-center rounded-none">
+              <Loader2 className="w-4 h-4 animate-spin text-[#FFFF00]" />
+              <span className="ml-2 font-mono text-xs text-[#FFFF00]">LOADING CONTEXT...</span>
+            </div>
+          </div>
+        ) : (
+          messages.map((msg: any) => (
+            <div key={msg.id} className={`flex flex-col gap-1 w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
             {msg.role === 'user' ? (
               <>
                 <div className="bg-[#1A1A1A] text-white p-3 text-sm max-w-[90%] border border-[#262626] rounded-none">
@@ -222,7 +230,7 @@ export function AiChatPanel() {
               </>
             )}
           </div>
-        ))}
+        )))}
         {isProcessing && (
           <div className="flex flex-col gap-1 w-full items-start">
             <div className="bg-[#121212] border border-[#262626] border-l-2 border-l-[#FFFF00] p-4 text-sm max-w-[80%] flex items-center justify-center rounded-none">
