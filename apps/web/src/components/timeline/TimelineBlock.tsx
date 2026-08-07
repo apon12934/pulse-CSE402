@@ -40,11 +40,12 @@ interface TimelineBlockProps {
   onDragOver?: (e: React.DragEvent, block: any) => void;
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
+  baseZIndex: number;
 }
 
 export function TimelineBlock({ 
   block, hourStart, hourHeight, totalHeight, onDelete, onEdit, onRefresh,
-  isDragged, onDragStart, onDragOver, onDrop, onDragEnd
+  isDragged, onDragStart, onDragOver, onDrop, onDragEnd, baseZIndex
 }: TimelineBlockProps) {
   const initialTop = timeToOffset(block.startTime, hourStart, hourHeight);
   const initialHeight = Math.max(timeToHeight(block.startTime, block.endTime, hourHeight), 40);
@@ -120,10 +121,10 @@ export function TimelineBlock({
   return (
     <div
       className={cn(
-        "absolute left-3 right-3 transition-transform hover:z-50",
-        isDragged ? "opacity-50 z-50 scale-[0.98] pointer-events-none" : (isResizing ? "z-20" : "z-10")
+        "absolute left-3 right-3 transition-transform hover:!z-50",
+        isDragged ? "opacity-50 !z-50 scale-[0.98] pointer-events-none" : (isResizing ? "!z-40" : "")
       )}
-      style={{ top: initialTop, height }}
+      style={{ top: initialTop, height, zIndex: isDragged ? 50 : (isResizing ? 40 : baseZIndex) }}
       onDragOver={(e) => onDragOver?.(e, block)}
       onDrop={onDrop}
     >
@@ -138,16 +139,20 @@ export function TimelineBlock({
           <div className="flex items-start gap-2 min-w-0">
             <div 
               className="mt-0.5 cursor-grab active:cursor-grabbing text-[#555] hover:text-[#FFFF00] transition-colors"
-              draggable
+              draggable={true}
               onDragStart={(e) => {
+                e.stopPropagation();
                 // Set data to avoid some browsers dropping the drag
                 e.dataTransfer.setData('text/plain', block.id);
                 e.dataTransfer.effectAllowed = 'move';
                 onDragStart?.(e, block);
               }}
-              onDragEnd={onDragEnd}
+              onDragEnd={(e) => {
+                e.stopPropagation();
+                onDragEnd?.();
+              }}
             >
-              <GripVertical className="w-4 h-4" />
+              <GripVertical className="w-4 h-4 pointer-events-none" />
             </div>
             <div className="flex flex-col gap-0.5 min-w-0">
               <span className="font-sans text-[14px] font-semibold leading-tight truncate text-[#FFFF00]">

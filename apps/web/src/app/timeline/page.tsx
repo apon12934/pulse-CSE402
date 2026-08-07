@@ -324,23 +324,29 @@ export default function TimelinePage() {
               </div>
             )}
             
-            {orderedTasks.map((block) => (
-              <TimelineBlock
-                key={block.id}
-                block={block}
-                hourStart={hourStart}
-                hourHeight={HOUR_HEIGHT}
-                totalHeight={totalHeight}
-                onDelete={deleteTask}
-                onEdit={setEditingTask}
-                onRefresh={() => fetchTasks(currentDate)}
-                isDragged={draggedTaskId === block.id}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onDragEnd={handleDragEnd}
-              />
-            ))}
+            {orderedTasks.map((block) => {
+              const durationHours = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 3600000;
+              const baseZIndex = Math.max(1, Math.round(100 - durationHours * 10)); // Shorter tasks get higher z-index
+
+              return (
+                <TimelineBlock
+                  key={block.id}
+                  block={block}
+                  hourStart={hourStart}
+                  hourHeight={HOUR_HEIGHT}
+                  totalHeight={totalHeight}
+                  onDelete={deleteTask}
+                  onEdit={setEditingTask}
+                  onRefresh={() => fetchTasks(currentDate)}
+                  isDragged={draggedTaskId === block.id}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                  baseZIndex={baseZIndex}
+                />
+              );
+            })}
 
             {orderedTasks.length === 0 && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
