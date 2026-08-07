@@ -18,8 +18,23 @@ export default function DashboardPage() {
     fetchTasks(new Date());
   }, [token, fetchTasks]);
 
-  const activeTask = tasks.find(t => t.status === 'Running') || null;
-  const upcomingTasks = tasks.filter(t => t.status === 'Upcoming').sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const activeTask = tasks.find(t => 
+    t.status !== 'Completed' && 
+    new Date(t.startTime).getTime() <= currentTime.getTime() && 
+    new Date(t.endTime).getTime() > currentTime.getTime()
+  ) || null;
+
+  const upcomingTasks = tasks
+    .filter(t => t.status !== 'Completed' && new Date(t.endTime).getTime() > currentTime.getTime())
+    .filter(t => activeTask ? t.id !== activeTask.id : true)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   return (
     <div className="h-full bg-black text-white selection:bg-[#FFFF00] selection:text-black">
