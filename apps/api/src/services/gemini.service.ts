@@ -107,7 +107,8 @@ async function callGemini<T>(systemPrompt: string, userMessage: string): Promise
   });
 
   const text = response.text ?? "";
-  return JSON.parse(text) as T;
+  const cleanedText = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+  return JSON.parse(cleanedText) as T;
 }
 
 /**
