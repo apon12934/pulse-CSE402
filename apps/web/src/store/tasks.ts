@@ -10,6 +10,7 @@ interface TaskStore {
   updateTasks: (newTasks: any[]) => void;
   deleteTask: (taskId: string) => Promise<void>;
   updateTask: (taskId: string, data: Record<string, any>, date: Date) => Promise<void>;
+  clearDay: (date: Date) => Promise<void>;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -65,6 +66,18 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     } catch (err: any) {
       console.error('Failed to delete task:', err);
       set({ error: err.message || 'Failed to delete task' });
+    }
+  },
+
+  clearDay: async (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    set({ tasks: [] }); // Optimistic clear
+    try {
+      const { apiFetch } = await import('@/lib/api');
+      await apiFetch(`/api/tasks?date=${dateStr}`, { method: 'DELETE' });
+    } catch (err: any) {
+      console.error('Failed to clear day:', err);
+      set({ error: err.message || 'Failed to clear day' });
     }
   }
 }));
