@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Check, X, Bot, SendHorizontal, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@pulse/ui';
 import { apiPost, apiGet, apiDelete } from '@/lib/api';
@@ -12,6 +12,7 @@ export function AiChatPanel() {
   const { fetchTasks } = useTaskStore();
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadHistory() {
@@ -58,6 +59,14 @@ export function AiChatPanel() {
   };
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isProcessing]);
 
   const handleSend = async () => {
     if (!input.trim() || isProcessing) return;
@@ -242,6 +251,7 @@ export function AiChatPanel() {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}

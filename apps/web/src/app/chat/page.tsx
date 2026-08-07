@@ -16,6 +16,15 @@ export default function ChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [messages, isProcessing]);
 
   const handleSend = async () => {
     if (!input.trim() || isProcessing) return;
@@ -111,10 +120,22 @@ export default function ChatPage() {
             )}
           </div>
         ))}
+        {isProcessing && (
+          <div className="flex flex-col gap-1 w-full items-start">
+            <div className="bg-[#121212] border border-[#262626] border-l-2 border-l-[#FFFF00] p-4 text-sm max-w-[80%] flex items-center justify-center rounded-none">
+              <div className="flex space-x-1.5 items-center h-2">
+                <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <div className="p-6 border-t border-[#262626] shrink-0 bg-[#000000]">
+      <div className="p-4 border-t border-[#262626] bg-[#000000]">
         <div className="relative flex items-center max-w-3xl mx-auto">
           <Input 
             value={input}
