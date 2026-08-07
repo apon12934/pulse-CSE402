@@ -49,6 +49,19 @@ RULES:
 RESPONSE FORMAT:
 Return ONLY valid JSON. Same array format as the scheduler. Include ALL remaining tasks for the day (not just the changed ones), with updated times.`;
 
+const REORDER_SYSTEM_PROMPT = `You are Pulse's scheduling engine. The user has manually REORDERED their tasks for the day.
+
+RULES:
+1. You are provided with the tasks in their NEW EXACT ORDER. You MUST preserve this exact sequence.
+2. Calculate new start and end times for all tasks so they fit back-to-back in this exact order.
+3. Keep their original durations intact.
+4. Leave a 5-10 minute buffer between tasks.
+5. The first task should start at its currently provided startTime, or if that's in the past, start from the CURRENT WALL-CLOCK TIME.
+6. All tasks are flexible, but their ORDER is strict.
+
+RESPONSE FORMAT:
+Return ONLY valid JSON. Same array format as the scheduler. Include ALL tasks with their new times.`;
+
 function buildChatSystemPrompt(nowISO: string, date: string): string {
   return `You are Pulse, an intelligent, conversational AI scheduling assistant.
 The user will chat with you about their day. Your goal is to draft their schedule.
@@ -203,6 +216,23 @@ export async function reschedule(
   });
 
   return callGemini<ScheduleItem[]>(RESCHEDULE_SYSTEM_PROMPT, userMessage);
+}
+
+/**
+ * Reorder tasks based on a new sequence provided by the user.
+ */
+export async function reorderSchedule(
+  orderedTasks: ScheduleItem[],
+  date: string,
+): Promise<ScheduleItem[]> {
+  const nowISO = new Date().toISOString();
+  const userMessage = JSON.stringify({
+    date,
+    currentTime: nowISO,
+    orderedTasks,
+  });
+
+  return callGemini<ScheduleItem[]>(REORDER_SYSTEM_PROMPT, userMessage);
 }
 
 /**

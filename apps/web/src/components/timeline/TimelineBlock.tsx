@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@pulse/ui';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, GripVertical } from 'lucide-react';
 import { apiPost } from '@/lib/api';
 
 function timeToOffset(dateString: string, hourStart: number, hourHeight: number): number {
@@ -35,9 +35,17 @@ interface TimelineBlockProps {
   onDelete: (id: string) => void;
   onEdit: (block: any) => void;
   onRefresh: () => void;
+  isDragged?: boolean;
+  onDragStart?: (e: React.DragEvent, block: any) => void;
+  onDragOver?: (e: React.DragEvent, block: any) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
 }
 
-export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDelete, onEdit, onRefresh }: TimelineBlockProps) {
+export function TimelineBlock({ 
+  block, hourStart, hourHeight, totalHeight, onDelete, onEdit, onRefresh,
+  isDragged, onDragStart, onDragOver, onDrop, onDragEnd
+}: TimelineBlockProps) {
   const initialTop = timeToOffset(block.startTime, hourStart, hourHeight);
   const initialHeight = Math.max(timeToHeight(block.startTime, block.endTime, hourHeight), 40);
 
@@ -111,8 +119,13 @@ export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDel
 
   return (
     <div
-      className="absolute left-3 right-3"
-      style={{ top: initialTop, height, zIndex: isResizing ? 20 : 10 }}
+      className={cn(
+        "absolute left-3 right-3 transition-transform hover:z-50",
+        isDragged ? "opacity-50 z-50 scale-[0.98] pointer-events-none" : (isResizing ? "z-20" : "z-10")
+      )}
+      style={{ top: initialTop, height }}
+      onDragOver={(e) => onDragOver?.(e, block)}
+      onDrop={onDrop}
     >
       <div
         className={cn(
@@ -122,14 +135,29 @@ export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDel
         )}
       >
         <div className="flex items-start justify-between overflow-hidden">
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="font-sans text-[14px] font-semibold leading-tight truncate text-[#FFFF00]">
-              {block.title}
-            </span>
-            {/* Start → End time */}
-            <span className="font-mono text-[10px] text-[#555] uppercase tracking-[0.05em]">
-              {formatTime(block.startTime)} → {formatTime(liveEndTime)}
-            </span>
+          <div className="flex items-start gap-2 min-w-0">
+            <div 
+              className="mt-0.5 cursor-grab active:cursor-grabbing text-[#555] hover:text-[#FFFF00] transition-colors"
+              draggable
+              onDragStart={(e) => {
+                // Set data to avoid some browsers dropping the drag
+                e.dataTransfer.setData('text/plain', block.id);
+                e.dataTransfer.effectAllowed = 'move';
+                onDragStart?.(e, block);
+              }}
+              onDragEnd={onDragEnd}
+            >
+              <GripVertical className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <span className="font-sans text-[14px] font-semibold leading-tight truncate text-[#FFFF00]">
+                {block.title}
+              </span>
+              {/* Start → End time */}
+              <span className="font-mono text-[10px] text-[#555] uppercase tracking-[0.05em]">
+                {formatTime(block.startTime)} → {formatTime(liveEndTime)}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-1.5 mt-0.5 shrink-0 ml-2">
