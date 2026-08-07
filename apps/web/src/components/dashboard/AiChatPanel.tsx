@@ -165,22 +165,26 @@ export function AiChatPanel() {
                   {msg.status === 'draft' && msg.tasks && msg.tasks.length > 0 && (
                     <div className="mt-3 flex flex-col gap-2 border-t border-[#262626] pt-3">
                       <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wider">Proposed Tasks:</div>
-                      {msg.tasks.map((t: any, i: number) => (
-                        <div key={i} className="flex flex-col gap-1 bg-[#1A1A1A] p-2 border border-[#262626]">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-white text-xs">{t.title}</span>
-                            <span className="text-[10px] text-gray-500 font-mono">{t.type}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
-                            {t.fixedStartTime ? (
-                              <span>@ {format(new Date(t.fixedStartTime), 'h:mm a')}</span>
-                            ) : (
-                              <span>Fluid</span>
-                            )}
-                            <span>· {t.durationMinutes}m</span>
-                          </div>
-                        </div>
-                      ))}
+                        {msg.tasks.map((t: any, i: number) => {
+                          const start = t.fixedStartTime ? new Date(t.fixedStartTime) : null;
+                          const end = start ? new Date(start.getTime() + t.durationMinutes * 60000) : null;
+                          const fmt = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                          return (
+                            <div key={i} className="flex flex-col gap-1 bg-[#1A1A1A] p-2 border border-[#262626]">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-white text-xs">{t.title}</span>
+                                <span className="text-[10px] text-gray-500 font-mono">{t.type}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
+                                {start && end ? (
+                                  <span>{fmt(start)} → {fmt(end)}</span>
+                                ) : (
+                                  <span>Fluid · {t.durationMinutes}m</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                     </div>
                   )}
                 </div>

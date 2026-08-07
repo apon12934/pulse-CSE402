@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiGet } from '@/lib/api';
+import { apiGet, apiPatch, apiDelete as _apiDelete } from '@/lib/api';
 import { useAuthStore } from './auth';
 
 interface TaskStore {
@@ -9,9 +9,10 @@ interface TaskStore {
   fetchTasks: (date: Date) => Promise<void>;
   updateTasks: (newTasks: any[]) => void;
   deleteTask: (taskId: string) => Promise<void>;
+  updateTask: (taskId: string, data: Record<string, any>, date: Date) => Promise<void>;
 }
 
-export const useTaskStore = create<TaskStore>((set) => ({
+export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
   isLoading: false,
   error: null,
@@ -38,13 +39,29 @@ export const useTaskStore = create<TaskStore>((set) => ({
     set({ tasks: newTasks });
   },
 
+  updateTask: async (taskId: string, data: Record<string, any>, date: Date) => {
+    try {
+      const res = await apiPatch<{ task: any }>(`/api/tasks/${taskId}`, data);
+      // Optimistically update the local store
+      set((state) => ({
+        tasks: state.tasks.map((t) => t.id === taskId ? { ...t, ...res.task } : t)
+      }));
+    } catch (err: any) {
+      console.error('Failed to update task:', err);
+      set({ error: err.message || 'Failed to update task' });
+      // Re-fetch to restore state
+      await get().fetchTasks(date);
+    }
+  },
+
   deleteTask: async (taskId: string) => {
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.filter((t) => t.id !== taskId)
+    }));
     try {
       const { apiDelete } = await import('@/lib/api');
       await apiDelete(`/api/tasks/${taskId}`);
-      set((state) => ({
-        tasks: state.tasks.filter((t) => t.id !== taskId)
-      }));
     } catch (err: any) {
       console.error('Failed to delete task:', err);
       set({ error: err.message || 'Failed to delete task' });

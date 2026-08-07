@@ -7,6 +7,7 @@ import { apiPost } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useTaskStore } from '@/store/tasks';
 import { TimelineBlock } from '@/components/timeline/TimelineBlock';
+import { EditTaskModal } from '@/components/shared/EditTaskModal';
 
 /* ─── Time Grid Config ─────────────────────────── */
 // We'll compute these dynamically inside the component now
@@ -25,6 +26,7 @@ export default function TimelinePage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isGenerating, setIsGenerating] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
   const { token } = useAuthStore();
 
   useEffect(() => {
@@ -263,6 +265,7 @@ export default function TimelinePage() {
                 hourHeight={HOUR_HEIGHT}
                 totalHeight={totalHeight}
                 onDelete={deleteTask}
+                onEdit={setEditingTask}
                 onRefresh={() => fetchTasks(currentDate)}
               />
             ))}
@@ -281,6 +284,13 @@ export default function TimelinePage() {
           </div>
         </div>
       </div>
+
+      <EditTaskModal
+        task={editingTask}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        currentDate={currentDate}
+      />
     </div>
   );
 }
