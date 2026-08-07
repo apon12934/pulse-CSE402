@@ -24,6 +24,7 @@ function formatHour(h: number): string {
 export default function TimelinePage() {
   const { tasks, fetchTasks, deleteTask, clearDay, error: storeError } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [now, setNow] = useState(new Date());
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const { token } = useAuthStore();
@@ -31,6 +32,11 @@ export default function TimelinePage() {
   useEffect(() => {
     fetchTasks(currentDate);
   }, [currentDate, token, fetchTasks]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -247,7 +253,25 @@ export default function TimelinePage() {
                 style={{ top: (h - hourStart) * HOUR_HEIGHT }}
               />
             ))}
+            {/* Current Time Indicator */}
+            {currentDate.toDateString() === now.toDateString() && (() => {
+              const h = now.getHours();
+              const m = now.getMinutes();
+              if (h < hourStart) return null;
+              const topOffset = (h - hourStart + m / 60) * HOUR_HEIGHT;
+              
+              return (
+                <div 
+                  className="absolute left-0 w-full z-30 pointer-events-none flex items-center"
+                  style={{ top: topOffset }}
+                >
+                  <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                  <div className="flex-1 h-px bg-red-500/80 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
+                </div>
+              );
+            })()}
 
+            {/* Blocks */}
             {tasks.map((block) => (
               <TimelineBlock
                 key={block.id}

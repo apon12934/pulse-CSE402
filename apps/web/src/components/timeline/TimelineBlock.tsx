@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@pulse/ui';
 import { Lock, GripVertical, Pencil, Trash2 } from 'lucide-react';
-import { apiPatch } from '@/lib/api';
+import { apiPost } from '@/lib/api';
 
 function timeToOffset(dateString: string, hourStart: number, hourHeight: number): number {
   const d = new Date(dateString);
@@ -80,7 +80,10 @@ export function TimelineBlock({ block, hourStart, hourHeight, totalHeight, onDel
       const newEndTime = new Date(new Date(block.startTime).getTime() + newDurationMs);
 
       try {
-        await apiPatch(`/api/tasks/${block.id}`, { endTime: newEndTime.toISOString() });
+        await apiPost('/api/schedule/reschedule', { 
+          taskId: block.id, 
+          newEndTime: newEndTime.toISOString() 
+        });
         onRefresh();
       } catch (err) {
         console.error('Failed to update task duration', err);
