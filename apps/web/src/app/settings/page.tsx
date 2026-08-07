@@ -14,6 +14,8 @@ export default function SettingsPage() {
   const { fetchTasks } = useTaskStore();
   
   const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState('');
 
@@ -106,11 +108,13 @@ export default function SettingsPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !email.trim()) return;
     setIsUpdatingProfile(true);
     setProfileMsg('');
     try {
-      await apiPatch('/api/user/profile', { name });
+      const payload: any = { name, email };
+      if (username.trim()) payload.username = username;
+      await apiPatch('/api/user/profile', payload);
       setProfileMsg('Profile updated.');
     } catch (err: any) {
       setProfileMsg(err.message || 'Failed to update profile.');
@@ -227,10 +231,32 @@ export default function SettingsPage() {
                 placeholder="John Doe"
               />
             </div>
+            <div>
+              <label className="block text-[#888] font-mono text-[10px] uppercase tracking-wider mb-2">Email Address</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full bg-[#1A1A1A] border border-[#262626] text-white p-3 font-mono text-sm focus:outline-none focus:border-[#FFFF00] rounded-none transition-colors"
+                placeholder="john@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-[#888] font-mono text-[10px] uppercase tracking-wider mb-2">Username (Optional)</label>
+              <input 
+                type="text" 
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                className="w-full bg-[#1A1A1A] border border-[#262626] text-white p-3 font-mono text-sm focus:outline-none focus:border-[#FFFF00] rounded-none transition-colors"
+                placeholder="johndoe123"
+                pattern="^[a-zA-Z0-9_]*$"
+                title="Only alphanumeric characters and underscores are allowed"
+              />
+            </div>
             <div className="flex items-center justify-between">
               <Button 
                 type="submit"
-                disabled={isUpdatingProfile || !name.trim() || name === user.name}
+                disabled={isUpdatingProfile || !name.trim() || !email.trim() || (name === user.name && email === user.email && username === (user.username || ''))}
                 className="bg-[#FFFF00] text-black hover:bg-[#FFFF00]/80 rounded-none font-mono tracking-widest uppercase text-xs h-10 px-8 shadow-none"
               >
                 {isUpdatingProfile ? 'Updating...' : 'Save Changes'}
