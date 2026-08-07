@@ -181,7 +181,7 @@ export type ParsedChatInput = {
  */
 async function callGemini<T>(systemPrompt: string, userMessage: string): Promise<T> {
   const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
+    model: "gemini-flash-latest",
     contents: userMessage,
     config: {
       systemInstruction: systemPrompt,
