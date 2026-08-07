@@ -294,7 +294,7 @@ export default function SettingsPage() {
               </div>
               <Button 
                 onClick={() => setClearModalOpen(true)}
-                className="bg-[#FF4444] text-white hover:bg-[#FF4444]/80 rounded-none font-mono tracking-widest uppercase text-[10px] h-8 shadow-none shrink-0"
+                className="bg-[#FF4444] text-white hover:bg-[#FF4444]/80 rounded-none font-mono tracking-widest uppercase text-xs h-10 w-40 shadow-none shrink-0"
               >
                 Clear Data
               </Button>
@@ -307,7 +307,7 @@ export default function SettingsPage() {
               </div>
               <Button 
                 onClick={() => setDeleteModalOpen(true)}
-                className="bg-[#FF4444] text-white hover:bg-[#FF4444]/80 rounded-none font-mono tracking-widest uppercase text-[10px] h-8 shadow-none shrink-0"
+                className="bg-[#FF4444] text-white hover:bg-[#FF4444]/80 rounded-none font-mono tracking-widest uppercase text-xs h-10 w-40 shadow-none shrink-0"
               >
                 Delete Account
               </Button>
