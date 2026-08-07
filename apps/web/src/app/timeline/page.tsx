@@ -28,20 +28,11 @@ export default function TimelinePage() {
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   
-  // Drag and Drop state
-  const [orderedTasks, setOrderedTasks] = useState(tasks);
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
-  const [isReordering, setIsReordering] = useState(false);
-
   const { token } = useAuthStore();
 
   useEffect(() => {
     fetchTasks(currentDate);
   }, [currentDate, token, fetchTasks]);
-
-  useEffect(() => {
-    setOrderedTasks(tasks);
-  }, [tasks]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000);
@@ -89,47 +80,23 @@ export default function TimelinePage() {
   };
 
   // Dynamic Hour Range Calculation
-  const handleDragStart = (e: React.DragEvent, block: any) => {
-    setDraggedTaskId(block.id);
-  };
+  const [isReordering, setIsReordering] = useState(false);
 
-  const handleDragOver = (e: React.DragEvent, targetBlock: any) => {
-    e.preventDefault(); // Necessary to allow dropping
-    if (!draggedTaskId || draggedTaskId === targetBlock.id) return;
-
-    // Locally swap tasks to show visual feedback
-    const draggedIndex = orderedTasks.findIndex(t => t.id === draggedTaskId);
-    const targetIndex = orderedTasks.findIndex(t => t.id === targetBlock.id);
-    
-    if (draggedIndex !== -1 && targetIndex !== -1) {
-      const newTasks = [...orderedTasks];
-      const [draggedTask] = newTasks.splice(draggedIndex, 1);
-      newTasks.splice(targetIndex, 0, draggedTask);
-      setOrderedTasks(newTasks);
-    }
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    if (!draggedTaskId) return;
-
+  const handleMove = async (block: any, newStartTimeISO: string) => {
     setIsReordering(true);
     try {
-      const taskIds = orderedTasks.map(t => t.id);
       const dateStr = currentDate.toISOString().split('T')[0];
-      await apiPost('/api/schedule/reorder', { taskIds, date: dateStr });
+      await apiPost('/api/schedule/move', { 
+        taskId: block.id, 
+        newStartTime: newStartTimeISO,
+        date: dateStr 
+      });
       await fetchTasks(currentDate);
     } catch (err) {
-      console.error('Failed to reorder tasks:', err);
-      setOrderedTasks(tasks); // revert on error
+      console.error('Failed to move task:', err);
     } finally {
       setIsReordering(false);
-      setDraggedTaskId(null);
     }
-  };
-
-  const handleDragEnd = () => {
-    setDraggedTaskId(null);
   };
 
   const hourStart = tasks.length > 0 
@@ -324,7 +291,7 @@ export default function TimelinePage() {
               </div>
             )}
             
-            {orderedTasks.map((block) => {
+            {tasks.map((block) => {
               const durationHours = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 3600000;
               const baseZIndex = Math.max(1, Math.round(100 - durationHours * 10)); // Shorter tasks get higher z-index
 
@@ -338,17 +305,13 @@ export default function TimelinePage() {
                   onDelete={deleteTask}
                   onEdit={setEditingTask}
                   onRefresh={() => fetchTasks(currentDate)}
-                  isDragged={draggedTaskId === block.id}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  onDragEnd={handleDragEnd}
+                  onMove={handleMove}
                   baseZIndex={baseZIndex}
                 />
               );
             })}
 
-            {orderedTasks.length === 0 && (
+            {tasks.length === 0 && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-16 h-16 border border-[#262626] flex items-center justify-center mb-4">
                   <CalendarPlus className="w-6 h-6 text-[#666]" />

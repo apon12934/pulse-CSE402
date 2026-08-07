@@ -62,6 +62,19 @@ RULES:
 RESPONSE FORMAT:
 Return ONLY valid JSON. Same array format as the scheduler. Include ALL tasks with their new times.`;
 
+const MOVE_SYSTEM_PROMPT = `You are Pulse's scheduling engine. The user has manually MOVED a task to a new exact time.
+
+RULES:
+1. The moved task's new startTime and endTime are provided. Accept them as fact and DO NOT move this task.
+2. Reschedule the remaining tasks around it.
+3. If the moved task overlaps with existing tasks, push those existing tasks down or shrink them.
+4. Keep original durations intact where possible, but you can compress low priority tasks.
+5. Leave a 5-10 minute buffer between tasks.
+6. Preserve the original chronological order of the remaining tasks as much as possible.
+
+RESPONSE FORMAT:
+Return ONLY valid JSON. Same array format as the scheduler. Include ALL tasks (including the moved one) with their new times.`;
+
 function buildChatSystemPrompt(nowISO: string, date: string): string {
   return `You are Pulse, an intelligent, conversational AI scheduling assistant.
 The user will chat with you about their day. Your goal is to draft their schedule.
@@ -233,6 +246,23 @@ export async function reorderSchedule(
   });
 
   return callGemini<ScheduleItem[]>(REORDER_SYSTEM_PROMPT, userMessage);
+}
+
+/**
+ * Move a task to a new time and reschedule the rest around it.
+ */
+export async function moveSchedule(
+  movedTask: { title: string; newStartTime: string; newEndTime: string },
+  remainingTasks: ScheduleItem[],
+  date: string,
+): Promise<ScheduleItem[]> {
+  const userMessage = JSON.stringify({
+    date,
+    movedTask,
+    remainingTasks,
+  });
+
+  return callGemini<ScheduleItem[]>(MOVE_SYSTEM_PROMPT, userMessage);
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   generateSchedule,
   reschedule,
   reorderSchedule,
+  moveSchedule,
   converseSchedule,
   converseWeekly,
   type ScheduleItem,
@@ -198,6 +199,81 @@ export async function reorderTasks(req: Request, res: Response): Promise<void> {
     // Because Gemini returns the array in the same order, we can map by title/index.
     // To be safe, we map by the strictly ordered sortedTasks array index.
     const originalTask = sortedTasks[i];
+    if (originalTask) {
+      await prisma.task.update({
+        where: { id: originalTask.id },
+        data: {
+          ...(item.startTime && { startTime: new Date(item.startTime) }),
+          ...(item.endTime && { endTime: new Date(item.endTime) }),
+          status: item.status,
+        },
+      });
+    }
+  }
+
+  res.json({ schedule: newSchedule, tasksUpdated: newSchedule.length });
+}
+
+/**
+ * POST /api/schedule/move
+ * Move a single task to a specific time and reschedule the rest of the day.
+ */
+export async function moveTask(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const { taskId, newStartTime, date } = req.body as { taskId: string; newStartTime: string; date: string };
+
+  if (!taskId || !newStartTime || !date) {
+    throw new AppError(400, "taskId, newStartTime, and date are required");
+  }
+
+  // 1. Find the moved task
+  const taskToMove = await prisma.task.findUnique({ where: { id: taskId, userId } });
+  if (!taskToMove) throw new AppError(404, "Task not found");
+
+  // Calculate new end time based on original duration
+  const originalDuration = taskToMove.endTime.getTime() - taskToMove.startTime.getTime();
+  const updatedStartTime = new Date(newStartTime);
+  const updatedEndTime = new Date(updatedStartTime.getTime() + originalDuration);
+
+  // 2. Find all tasks for the day (excluding the moved one)
+  const dayStart = new Date(date);
+  const dayEnd = new Date(date);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+
+  const remainingTasks = await prisma.task.findMany({
+    where: {
+      userId,
+      id: { not: taskId },
+      startTime: { gte: dayStart, lt: dayEnd },
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  const remainingItems: ScheduleItem[] = remainingTasks.map((t) => ({
+    title: t.title,
+    type: t.type as ScheduleItem["type"],
+    startTime: t.startTime.toISOString(),
+    endTime: t.endTime.toISOString(),
+    energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
+    priority: t.priority,
+    status: t.status as ScheduleItem["status"],
+  }));
+
+  // 3. Ask Gemini to recalculate the schedule
+  const movedItem = {
+    title: taskToMove.title,
+    newStartTime: updatedStartTime.toISOString(),
+    newEndTime: updatedEndTime.toISOString()
+  };
+
+  const newSchedule = await moveSchedule(movedItem, remainingItems, date);
+
+  // 4. Persist
+  for (const item of newSchedule) {
+    const originalTask = item.title === taskToMove.title 
+      ? taskToMove 
+      : remainingTasks.find(t => t.title === item.title);
+
     if (originalTask) {
       await prisma.task.update({
         where: { id: originalTask.id },

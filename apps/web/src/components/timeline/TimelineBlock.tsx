@@ -35,32 +35,32 @@ interface TimelineBlockProps {
   onDelete: (id: string) => void;
   onEdit: (block: any) => void;
   onRefresh: () => void;
-  isDragged?: boolean;
-  onDragStart?: (e: React.DragEvent, block: any) => void;
-  onDragOver?: (e: React.DragEvent, block: any) => void;
-  onDrop?: (e: React.DragEvent) => void;
-  onDragEnd?: () => void;
+  onMove: (block: any, newStartTimeISO: string) => void;
   baseZIndex: number;
 }
 
 export function TimelineBlock({ 
   block, hourStart, hourHeight, totalHeight, onDelete, onEdit, onRefresh,
-  isDragged, onDragStart, onDragOver, onDrop, onDragEnd, baseZIndex
+  onMove, baseZIndex
 }: TimelineBlockProps) {
   const initialTop = timeToOffset(block.startTime, hourStart, hourHeight);
   const initialHeight = Math.max(timeToHeight(block.startTime, block.endTime, hourHeight), 40);
 
   const [height, setHeight] = useState(initialHeight);
+  const [top, setTop] = useState(initialTop);
+  
   const [isResizing, setIsResizing] = useState(false);
+  const [isMovingBlock, setIsMovingBlock] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  
   const startYRef = useRef(0);
   const startHeightRef = useRef(0);
+  const startTopRef = useRef(0);
 
   useEffect(() => {
-    if (!isResizing) {
-      setHeight(initialHeight);
-    }
-  }, [initialHeight, isResizing]);
+    if (!isResizing) setHeight(initialHeight);
+    if (!isMovingBlock) setTop(initialTop);
+  }, [initialHeight, initialTop, isResizing, isMovingBlock]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -70,36 +70,71 @@ export function TimelineBlock({
     document.body.style.userSelect = 'none';
   };
 
+  const handleGripMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMovingBlock(true);
+    startYRef.current = e.clientY;
+    startTopRef.current = top;
+    document.body.style.userSelect = 'none';
+  };
+
   useEffect(() => {
-    if (!isResizing) return;
+    if (!isResizing && !isMovingBlock) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const deltaY = e.clientY - startYRef.current;
-      const rawNewHeight = Math.max(20, startHeightRef.current + deltaY);
-      const snapIncrement = hourHeight / 12; // 5-min snap
-      const snappedHeight = Math.round(rawNewHeight / snapIncrement) * snapIncrement;
-      setHeight(snappedHeight);
+      if (isResizing) {
+        const deltaY = e.clientY - startYRef.current;
+        const rawNewHeight = Math.max(20, startHeightRef.current + deltaY);
+        const snapIncrement = hourHeight / 12; // 5-min snap
+        const snappedHeight = Math.round(rawNewHeight / snapIncrement) * snapIncrement;
+        setHeight(snappedHeight);
+      } else if (isMovingBlock) {
+        const deltaY = e.clientY - startYRef.current;
+        const rawNewTop = Math.max(0, startTopRef.current + deltaY);
+        const snapIncrement = hourHeight / 12; // 5-min snap
+        const snappedTop = Math.round(rawNewTop / snapIncrement) * snapIncrement;
+        setTop(snappedTop);
+      }
     };
 
     const handleMouseUp = async () => {
-      setIsResizing(false);
       document.body.style.userSelect = '';
+      
+      if (isResizing) {
+        setIsResizing(false);
+        const newDurationMs = (height / hourHeight) * 3600000;
+        const newEndTime = new Date(new Date(block.startTime).getTime() + newDurationMs);
 
-      const newDurationMs = (height / hourHeight) * 3600000;
-      const newEndTime = new Date(new Date(block.startTime).getTime() + newDurationMs);
+        setIsRecalculating(true);
+        try {
+          await apiPost('/api/schedule/reschedule', { 
+            taskId: block.id, 
+            newEndTime: newEndTime.toISOString() 
+          });
+          onRefresh();
+        } catch (err) {
+          console.error('Failed to update task duration', err);
+          setHeight(initialHeight);
+        } finally {
+          setIsRecalculating(false);
+        }
+      } else if (isMovingBlock) {
+        setIsMovingBlock(false);
+        // Calculate new start time based on dropped 'top' position
+        const hoursFromStart = top / hourHeight;
+        const dateObj = new Date(block.startTime);
+        dateObj.setHours(hourStart, 0, 0, 0); // reset to timeline start
+        const newStartTimeMs = dateObj.getTime() + hoursFromStart * 3600000;
+        const newStartTime = new Date(newStartTimeMs);
 
-      setIsRecalculating(true);
-      try {
-        await apiPost('/api/schedule/reschedule', { 
-          taskId: block.id, 
-          newEndTime: newEndTime.toISOString() 
-        });
-        onRefresh();
-      } catch (err) {
-        console.error('Failed to update task duration', err);
-        setHeight(initialHeight);
-      } finally {
-        setIsRecalculating(false);
+        setIsRecalculating(true);
+        try {
+          await onMove(block, newStartTime.toISOString());
+        } catch (err) {
+          setTop(initialTop);
+        } finally {
+          setIsRecalculating(false);
+        }
       }
     };
 
@@ -109,7 +144,7 @@ export function TimelineBlock({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing, height, hourHeight, block, onRefresh, initialHeight]);
+  }, [isResizing, isMovingBlock, height, top, hourHeight, hourStart, block, onRefresh, initialHeight, initialTop, onMove]);
 
   if (initialTop < 0 || initialTop > totalHeight) return null;
 
@@ -122,11 +157,9 @@ export function TimelineBlock({
     <div
       className={cn(
         "absolute left-3 right-3 transition-transform hover:!z-50",
-        isDragged ? "opacity-50 !z-50 scale-[0.98] pointer-events-none" : (isResizing ? "!z-40" : "")
+        isMovingBlock ? "opacity-90 !z-50 scale-[1.02]" : (isResizing ? "!z-40" : "")
       )}
-      style={{ top: initialTop, height, zIndex: isDragged ? 50 : (isResizing ? 40 : baseZIndex) }}
-      onDragOver={(e) => onDragOver?.(e, block)}
-      onDrop={onDrop}
+      style={{ top, height, zIndex: isMovingBlock ? 50 : (isResizing ? 40 : baseZIndex) }}
     >
       <div
         className={cn(
@@ -139,18 +172,7 @@ export function TimelineBlock({
           <div className="flex items-start gap-2 min-w-0">
             <div 
               className="mt-0.5 cursor-grab active:cursor-grabbing text-[#555] hover:text-[#FFFF00] transition-colors"
-              draggable={true}
-              onDragStart={(e) => {
-                e.stopPropagation();
-                // Set data to avoid some browsers dropping the drag
-                e.dataTransfer.setData('text/plain', block.id);
-                e.dataTransfer.effectAllowed = 'move';
-                onDragStart?.(e, block);
-              }}
-              onDragEnd={(e) => {
-                e.stopPropagation();
-                onDragEnd?.();
-              }}
+              onMouseDown={handleGripMouseDown}
             >
               <GripVertical className="w-4 h-4 pointer-events-none" />
             </div>
