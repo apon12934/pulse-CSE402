@@ -110,7 +110,7 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
     where: {
       userId,
       id: { not: taskId },
-      startTime: { gte: new Date(newEndTime), lt: dayEnd },
+      startTime: { gte: overrunTask.startTime, lt: dayEnd },
     },
     orderBy: { startTime: "asc" },
   });
