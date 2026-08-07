@@ -476,3 +476,17 @@ export async function resetDay(req: Request, res: Response): Promise<void> {
 
   res.json({ success: true, restored: templates.length });
 }
+
+/**
+ * DELETE /api/schedule/clear-all
+ * Delete all tasks for the user.
+ */
+export async function clearAllTasks(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+
+  await prisma.task.deleteMany({
+    where: { userId },
+  });
+
+  res.json({ success: true });
+}
