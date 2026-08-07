@@ -4,6 +4,7 @@ import { AppError } from "../utils/errors.js";
 import {
   generateSchedule,
   reschedule,
+  reorderSchedule,
   converseSchedule,
   converseWeekly,
   type ScheduleItem,
@@ -144,6 +145,72 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
   }
 
   res.json({ rescheduled, tasksAffected: rescheduled.length });
+}
+
+/**
+ * POST /api/schedule/reorder
+ * Reorder tasks based on an explicit array of task IDs.
+ */
+export async function reorderTasks(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const { taskIds, date } = req.body as { taskIds: string[]; date: string };
+
+  if (!taskIds || !Array.isArray(taskIds) || !date) {
+    throw new AppError(400, "taskIds array and date are required");
+  }
+
+  // Fetch all tasks for these IDs
+  const tasks = await prisma.task.findMany({
+    where: {
+      userId,
+      id: { in: taskIds },
+    },
+  });
+
+  // Sort them in the exact order provided by the client
+  const sortedTasks = taskIds
+    .map((id) => tasks.find((t) => t.id === id))
+    .filter((t): t is NonNullable<typeof t> => t !== undefined);
+
+  if (sortedTasks.length === 0) {
+    res.json({ schedule: [], tasksUpdated: 0 });
+    return;
+  }
+
+  const items: ScheduleItem[] = sortedTasks.map((t) => ({
+    title: t.title,
+    type: t.type as ScheduleItem["type"],
+    startTime: t.startTime.toISOString(),
+    endTime: t.endTime.toISOString(),
+    energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
+    priority: t.priority,
+    status: t.status as ScheduleItem["status"],
+  }));
+
+  // Send to Gemini to crunch the new times
+  const newSchedule = await reorderSchedule(items, date);
+
+  // Persist the new times
+  for (let i = 0; i < newSchedule.length; i++) {
+    const item = newSchedule[i];
+    if (!item) continue;
+    
+    // Because Gemini returns the array in the same order, we can map by title/index.
+    // To be safe, we map by the strictly ordered sortedTasks array index.
+    const originalTask = sortedTasks[i];
+    if (originalTask) {
+      await prisma.task.update({
+        where: { id: originalTask.id },
+        data: {
+          ...(item.startTime && { startTime: new Date(item.startTime) }),
+          ...(item.endTime && { endTime: new Date(item.endTime) }),
+          status: item.status,
+        },
+      });
+    }
+  }
+
+  res.json({ schedule: newSchedule, tasksUpdated: newSchedule.length });
 }
 
 /**

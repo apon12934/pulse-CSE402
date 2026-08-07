@@ -27,11 +27,21 @@ export default function TimelinePage() {
   const [now, setNow] = useState(new Date());
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
+  
+  // Drag and Drop state
+  const [orderedTasks, setOrderedTasks] = useState(tasks);
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
+
   const { token } = useAuthStore();
 
   useEffect(() => {
     fetchTasks(currentDate);
   }, [currentDate, token, fetchTasks]);
+
+  useEffect(() => {
+    setOrderedTasks(tasks);
+  }, [tasks]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000);
@@ -79,6 +89,49 @@ export default function TimelinePage() {
   };
 
   // Dynamic Hour Range Calculation
+  const handleDragStart = (e: React.DragEvent, block: any) => {
+    setDraggedTaskId(block.id);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetBlock: any) => {
+    e.preventDefault(); // Necessary to allow dropping
+    if (!draggedTaskId || draggedTaskId === targetBlock.id) return;
+
+    // Locally swap tasks to show visual feedback
+    const draggedIndex = orderedTasks.findIndex(t => t.id === draggedTaskId);
+    const targetIndex = orderedTasks.findIndex(t => t.id === targetBlock.id);
+    
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      const newTasks = [...orderedTasks];
+      const [draggedTask] = newTasks.splice(draggedIndex, 1);
+      newTasks.splice(targetIndex, 0, draggedTask);
+      setOrderedTasks(newTasks);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!draggedTaskId) return;
+
+    setIsReordering(true);
+    try {
+      const taskIds = orderedTasks.map(t => t.id);
+      const dateStr = currentDate.toISOString().split('T')[0];
+      await apiPost('/api/schedule/reorder', { taskIds, date: dateStr });
+      await fetchTasks(currentDate);
+    } catch (err) {
+      console.error('Failed to reorder tasks:', err);
+      setOrderedTasks(tasks); // revert on error
+    } finally {
+      setIsReordering(false);
+      setDraggedTaskId(null);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null);
+  };
+
   const hourStart = tasks.length > 0 
     ? Math.max(0, Math.min(...tasks.map(t => new Date(t.startTime).getHours())) - 1)
     : 8;
@@ -262,7 +315,16 @@ export default function TimelinePage() {
             })()}
 
             {/* Blocks */}
-            {tasks.map((block) => (
+            {isReordering && (
+              <div className="absolute inset-0 z-40 bg-[#121212]/80 backdrop-blur-sm flex flex-col items-center justify-center">
+                <div className="font-mono text-[10px] text-[#FFFF00] uppercase tracking-[0.2em] animate-pulse flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-ping" />
+                  AI REBUILDING SCHEDULE...
+                </div>
+              </div>
+            )}
+            
+            {orderedTasks.map((block) => (
               <TimelineBlock
                 key={block.id}
                 block={block}
@@ -272,10 +334,15 @@ export default function TimelinePage() {
                 onDelete={deleteTask}
                 onEdit={setEditingTask}
                 onRefresh={() => fetchTasks(currentDate)}
+                isDragged={draggedTaskId === block.id}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onDragEnd={handleDragEnd}
               />
             ))}
 
-            {tasks.length === 0 && (
+            {orderedTasks.length === 0 && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-16 h-16 border border-[#262626] flex items-center justify-center mb-4">
                   <CalendarPlus className="w-6 h-6 text-[#666]" />
