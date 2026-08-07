@@ -278,10 +278,9 @@ export function AiChatPanel() {
           />
           <Button 
             variant="ghost" 
-            size="sm" 
             onClick={handleSend}
             disabled={isProcessing || !input.trim()}
-            className="absolute right-1 bottom-1 text-[#888] hover:text-[#FFFF00] hover:bg-transparent disabled:opacity-50 disabled:bg-transparent"
+            className="absolute right-2 bottom-1.5 w-8 h-8 p-0 flex items-center justify-center text-[#888] hover:text-[#FFFF00] hover:bg-transparent disabled:opacity-50 disabled:bg-transparent"
           >
             <SendHorizontal className="w-4 h-4" />
           </Button>
