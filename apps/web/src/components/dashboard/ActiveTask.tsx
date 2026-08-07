@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Button } from '@pulse/ui';
-import { CirclePlus, CheckCircle2, Play, Clock } from 'lucide-react';
+import { CirclePlus, CheckCircle2, Play, Clock, Loader2 } from 'lucide-react';
 import { apiPost, apiPatch } from '@/lib/api';
 import { useTaskStore } from '@/store/tasks';
 
@@ -15,6 +15,9 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
   const { fetchTasks } = useTaskStore();
   const [timeLeft, setTimeLeft] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isDelaying, setIsDelaying] = useState(false);
 
   useEffect(() => {
     if (!task) {
@@ -58,6 +61,7 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
 
   const handleNeedMoreTime = async () => {
     if (!task) return;
+    setIsDelaying(true);
     try {
       const newEndTime = new Date(new Date(task.endTime).getTime() + 15 * 60000).toISOString();
       await apiPost('/api/schedule/reschedule', {
@@ -67,11 +71,14 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
       await fetchTasks(new Date());
     } catch (err) {
       console.error('Failed to reschedule:', err);
+    } finally {
+      setIsDelaying(false);
     }
   };
 
   const handleCompleteTask = async () => {
     if (!task) return;
+    setIsCompleting(true);
     try {
       // Mark complete and set endTime to exactly now
       await apiPatch(`/api/tasks/${task.id}`, {
@@ -81,11 +88,14 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
       await fetchTasks(new Date());
     } catch (err) {
       console.error('Failed to complete task:', err);
+    } finally {
+      setIsCompleting(false);
     }
   };
 
   const handleStartNextTask = async () => {
     if (!nextTask) return;
+    setIsStarting(true);
     try {
       const dateStr = new Date().toISOString().split('T')[0];
       const nowISO = new Date().toISOString();
@@ -97,6 +107,8 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
       await fetchTasks(new Date());
     } catch (err) {
       console.error('Failed to start task:', err);
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -134,9 +146,14 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
           <Button 
             className="bg-white text-black hover:bg-[#FFFF00] hover:text-black transition-colors rounded-none px-6 py-4 flex items-center gap-2 font-mono tracking-widest text-xs border-none shadow-none"
             onClick={handleStartNextTask}
+            disabled={isStarting}
           >
-            <Play className="w-4 h-4 fill-current" />
-            START NOW
+            {isStarting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 fill-current" />
+            )}
+            {isStarting ? 'RECALCULATING...' : 'START NOW'}
           </Button>
         </div>
       </Card>
@@ -170,15 +187,17 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
         <Button 
           className="bg-transparent border border-[#333] text-white hover:bg-[#333] hover:text-white transition-colors rounded-none px-6 py-5 flex items-center gap-2 font-mono tracking-widest text-xs shadow-none flex-1"
           onClick={handleCompleteTask}
+          disabled={isCompleting || isDelaying}
         >
-          <CheckCircle2 className="w-4 h-4" />
+          {isCompleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           MARK COMPLETE
         </Button>
         <Button 
           className="bg-[#1A1A1A] text-[#A3A3A3] hover:bg-[#262626] hover:text-white transition-colors rounded-none px-6 py-5 flex items-center gap-2 font-mono tracking-widest text-xs border-none shadow-none flex-1"
           onClick={handleNeedMoreTime}
+          disabled={isCompleting || isDelaying}
         >
-          <CirclePlus className="w-4 h-4" />
+          {isDelaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CirclePlus className="w-4 h-4" />}
           NEED MORE TIME
         </Button>
       </div>
