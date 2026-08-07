@@ -46,7 +46,7 @@ export default function LoginPage() {
             <div className="h-3 w-3 rounded-none bg-[#FFFF00]" />
           </div>
           <p className="font-mono text-[11px] uppercase tracking-widest text-[#888]">
-            {isLogin ? 'SYSTEM AUTHENTICATION' : 'NEW SYSTEM IDENTITY'}
+            {isLogin ? 'SIGN IN TO YOUR ACCOUNT' : 'CREATE AN ACCOUNT'}
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" variant="primary" size="lg" className="w-full mt-2" disabled={isLoading}>
-              {isLoading ? 'PROCESSING...' : (isLogin ? 'AUTHENTICATE' : 'INITIALIZE PROFILE')}
+              {isLoading ? 'PROCESSING...' : (isLogin ? 'SIGN IN' : 'CREATE ACCOUNT')}
             </Button>
           </form>
         </Card>
@@ -101,7 +101,7 @@ export default function LoginPage() {
             onClick={() => setIsLogin(!isLogin)}
             className="font-mono text-[11px] text-[#888] hover:text-[#FFFF00] uppercase tracking-widest transition-colors"
           >
-            {isLogin ? 'Initialize new identity →' : '← Return to authentication'}
+            {isLogin ? 'Create an account →' : '← Back to sign in'}
           </button>
         </div>
       </div>

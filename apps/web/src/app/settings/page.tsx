@@ -176,12 +176,12 @@ export default function SettingsPage() {
         {/* Header */}
         <div>
           <h1 className="text-[#FFFF00] font-mono text-2xl font-bold tracking-widest uppercase mb-2">Settings</h1>
-          <p className="text-[#888] font-mono text-sm tracking-wide">Manage your AI Core preferences and security.</p>
+          <p className="text-[#888] font-mono text-sm tracking-wide">Manage your account preferences and security.</p>
         </div>
 
         {/* Avatar Section */}
         <div className="border border-[#262626] bg-[#121212] p-6 space-y-6">
-          <h2 className="text-white font-mono font-bold tracking-widest uppercase text-sm">Avatar Configuration</h2>
+          <h2 className="text-white font-mono font-bold tracking-widest uppercase text-sm">Profile Picture</h2>
           <div className="flex items-center gap-6">
             <div className="w-24 h-24 bg-[#1A1A1A] border border-[#262626] flex items-center justify-center overflow-hidden shrink-0">
               {isUploadingAvatar ? (
@@ -215,7 +215,7 @@ export default function SettingsPage() {
 
         {/* Profile Details */}
         <div className="border border-[#262626] bg-[#121212] p-6 space-y-6">
-          <h2 className="text-white font-mono font-bold tracking-widest uppercase text-sm">Identity Parameters</h2>
+          <h2 className="text-white font-mono font-bold tracking-widest uppercase text-sm">Personal Information</h2>
           <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-md">
             <div>
               <label className="block text-[#888] font-mono text-[10px] uppercase tracking-wider mb-2">Display Name</label>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
 
         {/* Security */}
         <div className="border border-[#262626] bg-[#121212] p-6 space-y-6">
-          <h2 className="text-white font-mono font-bold tracking-widest uppercase text-sm">Security Matrix</h2>
+          <h2 className="text-white font-mono font-bold tracking-widest uppercase text-sm">Security & Password</h2>
           <form onSubmit={handleUpdatePassword} className="space-y-4 max-w-md">
             <div>
               <label className="block text-[#888] font-mono text-[10px] uppercase tracking-wider mb-2">Current Password</label>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-[#262626] bg-[#0A0A0A]">
               <div>
                 <h3 className="text-white font-mono text-xs uppercase tracking-wider">Delete Account</h3>
-                <p className="text-[#666] font-mono text-[10px] mt-1">Permanently erase identity and all data.</p>
+                <p className="text-[#666] font-mono text-[10px] mt-1">Permanently erase your account and all data.</p>
               </div>
               <Button 
                 onClick={() => setDeleteModalOpen(true)}
@@ -332,8 +332,8 @@ export default function SettingsPage() {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteAccount}
         title="Delete Account"
-        description="This will permanently delete your user identity, all scheduled tasks, and your AI chat history. This action is irreversible."
-        confirmText="Erase Identity"
+        description="This will permanently delete your user account, all scheduled tasks, and your AI chat history. This action is irreversible."
+        confirmText="Delete Account"
         confirmType="danger"
         requireText="DELETE"
         isProcessing={isDeleting}
