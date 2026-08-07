@@ -4,7 +4,7 @@ import { AppError } from "../utils/errors.js";
 import {
   generateSchedule,
   reschedule,
-  parseChatInput,
+  converseSchedule,
   type ScheduleItem,
 } from "../services/gemini.service.js";
 
@@ -147,49 +147,53 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
 
 /**
  * POST /api/schedule/chat
- * Natural language input — user describes their day, AI parses into structured tasks.
+ * Natural language input — user chats with the AI to build a drafted schedule.
  */
 export async function chatSchedule(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { message, date } = req.body as { message: string; date: string };
+  const { messages, date } = req.body as { messages: { role: "user" | "model"; content: string }[]; date: string };
 
-  if (!message) throw new AppError(400, "message is required");
+  if (!messages || !Array.isArray(messages)) throw new AppError(400, "messages array is required");
   if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
 
-  const parsed = await parseChatInput(message, date);
+  const parsed = await converseSchedule(messages, date);
 
-  // Create tasks from parsed input
+  // If approved, create tasks from drafted input
   const createdTasks = [];
-  for (const task of parsed.tasks) {
-    let startTime: Date;
-    let endTime: Date;
+  if (parsed.status === "approved" && parsed.tasks) {
+    for (const task of parsed.tasks) {
+      let startTime: Date;
+      let endTime: Date;
 
-    if (task.fixedStartTime) {
-      startTime = new Date(task.fixedStartTime);
-    } else {
-      // Placeholder — will be optimised by generateSchedule
-      startTime = new Date(`${date}T09:00:00`);
+      if (task.fixedStartTime) {
+        startTime = new Date(task.fixedStartTime);
+      } else {
+        // Placeholder — will be optimised by generateSchedule
+        startTime = new Date(`${date}T09:00:00`);
+      }
+      endTime = new Date(startTime.getTime() + task.durationMinutes * 60_000);
+
+      const created = await prisma.task.create({
+        data: {
+          userId,
+          title: task.title,
+          type: task.type,
+          energyLevel: task.energyLevel,
+          priority: task.priority,
+          startTime,
+          endTime,
+          status: "Upcoming",
+        },
+      });
+      createdTasks.push(created);
     }
-    endTime = new Date(startTime.getTime() + task.durationMinutes * 60_000);
-
-    const created = await prisma.task.create({
-      data: {
-        userId,
-        title: task.title,
-        type: task.type,
-        energyLevel: task.energyLevel,
-        priority: task.priority,
-        startTime,
-        endTime,
-        status: "Upcoming",
-      },
-    });
-    createdTasks.push(created);
   }
 
   res.status(201).json({
-    parsedEnergyLevel: parsed.energyLevel,
+    reply: parsed.reply,
+    status: parsed.status,
     tasksCreated: createdTasks.length,
+    draftTasks: parsed.tasks ?? [],
     tasks: createdTasks,
   });
 }

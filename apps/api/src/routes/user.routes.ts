@@ -2,7 +2,8 @@ import { Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import { updateProfileSchema } from "../utils/validators.js";
-import { updateProfile } from "../controllers/user.controller.js";
+import { updateProfile, uploadAvatar } from "../controllers/user.controller.js";
+import { upload } from "../utils/cloudinary.js";
 
 const router = Router();
 
@@ -10,5 +11,6 @@ const router = Router();
 router.use(authMiddleware);
 
 router.patch("/profile", validate(updateProfileSchema), updateProfile);
+router.post("/avatar", upload.single("avatar"), uploadAvatar);
 
 export default router;

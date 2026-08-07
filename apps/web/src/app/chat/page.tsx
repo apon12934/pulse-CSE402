@@ -11,7 +11,7 @@ export default function ChatPage() {
       id: 'init',
       role: 'ai',
       text: 'Gemini Core initialized. Ready for scheduling directives.',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
     }
   ]);
   const [input, setInput] = useState('');
@@ -24,7 +24,7 @@ export default function ChatPage() {
       id: Date.now().toString(),
       role: 'user',
       text: input,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -33,17 +33,25 @@ export default function ChatPage() {
 
     try {
       const today = new Date().toISOString().split('T')[0];
+      
+      const apiMessages = [...messages, userMessage]
+        .filter(m => m.id !== 'init')
+        .map(m => ({
+          role: m.role === 'ai' ? 'model' : 'user',
+          content: m.text
+        }));
+
       const response = await apiPost<any>('/api/schedule/chat', {
-        message: userMessage.text,
+        messages: apiMessages,
         date: today
       });
 
       const aiMessage = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        title: `Parsed ${response.tasksCreated} task(s).`,
-        text: `Energy level interpreted as: ${response.parsedEnergyLevel}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        title: response.status === 'approved' ? `Successfully scheduled ${response.tasksCreated} task(s).` : undefined,
+        text: response.reply || "I'm sorry, I encountered an error formatting my response.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
       };
 
       setMessages(prev => [...prev, aiMessage]);
@@ -54,7 +62,7 @@ export default function ChatPage() {
         role: 'ai',
         title: 'Error processing directive.',
         text: 'Please check your connection and try again.',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
       }]);
     } finally {
       setIsProcessing(false);
