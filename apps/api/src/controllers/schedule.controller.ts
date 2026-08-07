@@ -12,6 +12,42 @@ import {
 } from "../services/gemini.service.js";
 
 /**
+ * GET /api/schedule/chat/history
+ * Fetch the user's persistent chat history.
+ */
+export async function getChatHistory(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+
+  const messages = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const formatted = messages.map(m => ({
+    id: m.id,
+    role: m.role,
+    text: m.content,
+    timestamp: m.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  }));
+
+  res.json({ messages: formatted });
+}
+
+/**
+ * DELETE /api/schedule/chat/history
+ * Clear the user's persistent chat history.
+ */
+export async function clearChatHistory(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+
+  await prisma.chatMessage.deleteMany({
+    where: { userId }
+  });
+
+  res.json({ success: true });
+}
+
+/**
  * POST /api/schedule/generate
  * Takes the user's tasks for a given date and asks Gemini to build an optimised timeline.
  */
@@ -295,10 +331,30 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
  */
 export async function chatSchedule(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { messages, date } = req.body as { messages: { role: "user" | "model"; content: string }[]; date: string };
+  const { message, date } = req.body as { message: string; date: string };
 
-  if (!messages || !Array.isArray(messages)) throw new AppError(400, "messages array is required");
+  if (!message) throw new AppError(400, "message is required");
   if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
+
+  // Save the user's message
+  await prisma.chatMessage.create({
+    data: {
+      userId,
+      role: "user",
+      content: message
+    }
+  });
+
+  // Fetch complete history
+  const dbMessages = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" }
+  });
+
+  const messages = dbMessages.map(m => ({
+    role: m.role === "ai" ? "model" as const : "user" as const,
+    content: m.content
+  }));
 
   // If this is a weekly conversation:
   if (messages.some(m => m.content.toLowerCase().includes("weekly"))) {
@@ -346,6 +402,15 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
       createdTasks.push(created);
     }
   }
+
+  // Save the AI's response
+  await prisma.chatMessage.create({
+    data: {
+      userId,
+      role: "ai",
+      content: parsed.reply
+    }
+  });
 
   res.status(201).json({
     reply: parsed.reply,

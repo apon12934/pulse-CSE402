@@ -6,6 +6,8 @@ import {
   reorderTasks,
   moveTask,
   chatSchedule,
+  getChatHistory,
+  clearChatHistory,
   resetDay,
 } from "../controllers/schedule.controller.js";
 
@@ -19,6 +21,8 @@ router.post("/reschedule", dominoReschedule);
 router.post("/reorder", reorderTasks);
 router.post("/move", moveTask);
 router.post("/chat", chatSchedule);
+router.get("/chat/history", getChatHistory);
+router.delete("/chat/history", clearChatHistory);
 router.delete("/reset-day", resetDay);
 
 export default router;

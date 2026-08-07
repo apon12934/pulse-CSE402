@@ -63,6 +63,7 @@ model User {
   taskBlocks    TaskBlock[]
   dailyRoutines DailyRoutine[]
   templateTasks TemplateTask[]
+  chatMessages  ChatMessage[]
 
   @@map("users")
 }
@@ -158,4 +159,18 @@ model TemplateTask {
   @@index([userId])
   @@index([userId, dayOfWeek])
   @@map("template_tasks")
+}
+
+/// Stores AI chat history for the user.
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  role      String   @db.VarChar(50) // "user" | "model"
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("chat_messages")
 }
