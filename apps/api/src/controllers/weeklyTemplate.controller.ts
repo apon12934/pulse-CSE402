@@ -94,13 +94,12 @@ export async function generateWeeklyTemplate(req: Request, res: Response): Promi
   // 1. Delete existing template
   await prisma.templateTask.deleteMany({ where: { userId } });
 
-  // 2. Delete all future template-generated Task instances for this user
+  // 2. Delete all future tasks to provide a clean slate for the new weekly routine
   const now = new Date();
   await prisma.task.deleteMany({
     where: {
       userId,
       startTime: { gte: now },
-      templateTaskId: { not: null },
     },
   });
 
