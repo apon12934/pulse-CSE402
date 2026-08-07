@@ -5,15 +5,19 @@ import { z } from "zod";
 export const registerSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   email: z.string().email("Invalid email address").max(255),
+  username: z.string().max(50).optional(),
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().min(1, "Email or username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
 export const updateProfileSchema = z.object({
+  name: z.string().min(1, "Name cannot be empty").max(100).optional(),
+  email: z.string().email("Invalid email address").max(255).optional(),
+  username: z.string().max(50).optional(),
   geminiApiKey: z.string().optional().nullable(),
   rescheduleStrategy: z.string().optional(),
 });

@@ -10,7 +10,7 @@ import { apiPatch, apiDelete, apiPost, BASE_URL } from '@/lib/api';
 import { useTaskStore } from '@/store/tasks';
 
 export default function SettingsPage() {
-  const { user, token, updateAvatarUrl, logout } = useAuthStore();
+  const { user, token, updateAvatarUrl, logout, hydrate } = useAuthStore();
   const { fetchTasks } = useTaskStore();
   
   const [name, setName] = useState(user?.name || '');
@@ -115,7 +115,10 @@ export default function SettingsPage() {
     try {
       const payload: any = { name, email };
       if (username.trim()) payload.username = username;
-      await apiPatch('/api/user/profile', payload);
+      const res = await apiPatch<{user: any}>('/api/user/profile', payload);
+      if (res && res.user) {
+        hydrate(res.user);
+      }
       setProfileMsg('Profile updated.');
     } catch (err: any) {
       setProfileMsg(err.message || 'Failed to update profile.');
