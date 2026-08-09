@@ -16,10 +16,7 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-full h-full bg-black border-r border-[#262626] flex-col shrink-0">
-      <div className="p-6 pb-4">
-        <div className="font-mono font-bold text-[#FFFF00] text-sm tracking-widest">AI CORE</div>
-        <div className="font-mono text-[#666] text-[10px] mt-1 tracking-wider">V2.4 STATUS: ACTIVE</div>
-      </div>
+      <div className="h-6"></div>
 
       <nav className="flex-1 flex flex-col mt-4">
         {NAV_ITEMS.map((item) => {
