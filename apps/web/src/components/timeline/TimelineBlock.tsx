@@ -63,18 +63,20 @@ export function TimelineBlock({
     if (!isMovingBlock) setTop(initialTop);
   }, [initialHeight, initialTop, isResizing, isMovingBlock]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     setIsResizing(true);
-    startYRef.current = e.clientY;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    startYRef.current = clientY;
     startHeightRef.current = height;
     document.body.style.userSelect = 'none';
   };
 
-  const handleGripMouseDown = (e: React.MouseEvent) => {
+  const handleGripMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     setIsMovingBlock(true);
-    startYRef.current = e.clientY;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    startYRef.current = clientY;
     startTopRef.current = top;
     document.body.style.userSelect = 'none';
   };
@@ -82,15 +84,22 @@ export function TimelineBlock({
   useEffect(() => {
     if (!isResizing && !isMovingBlock) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+      
+      if (isResizing || isMovingBlock) {
+        // Prevent page scrolling while dragging on touch devices
+        if (e.cancelable) e.preventDefault();
+      }
+
       if (isResizing) {
-        const deltaY = e.clientY - startYRef.current;
+        const deltaY = clientY - startYRef.current;
         const rawNewHeight = Math.max(20, startHeightRef.current + deltaY);
         const snapIncrement = hourHeight / 12; // 5-min snap
         const snappedHeight = Math.round(rawNewHeight / snapIncrement) * snapIncrement;
         setHeight(snappedHeight);
       } else if (isMovingBlock) {
-        const deltaY = e.clientY - startYRef.current;
+        const deltaY = clientY - startYRef.current;
         const rawNewTop = Math.max(0, startTopRef.current + deltaY);
         const snapIncrement = hourHeight / 12; // 5-min snap
         const snappedTop = Math.round(rawNewTop / snapIncrement) * snapIncrement;
@@ -145,11 +154,15 @@ export function TimelineBlock({
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove as any);
     window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleMouseMove as any, { passive: false });
+    window.addEventListener('touchend', handleMouseUp);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', handleMouseMove as any);
       window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleMouseMove as any);
+      window.removeEventListener('touchend', handleMouseUp);
     };
   }, [isResizing, isMovingBlock, height, top, hourHeight, hourStart, block, onRefresh, initialHeight, initialTop, onMove]);
 
@@ -180,6 +193,7 @@ export function TimelineBlock({
             <div 
               className="mt-0.5 cursor-grab active:cursor-grabbing text-[#555] hover:text-[#FFFF00] transition-colors"
               onMouseDown={handleGripMouseDown}
+              onTouchStart={handleGripMouseDown}
             >
               <GripVertical className="w-4 h-4 pointer-events-none" />
             </div>
@@ -221,11 +235,11 @@ export function TimelineBlock({
           </div>
         )}
 
-        {/* Resize handle */}
         <div
           className="absolute bottom-0 left-0 w-full h-4 cursor-ns-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           style={{ marginBottom: '-8px' }}
           onMouseDown={handleMouseDown}
+          onTouchStart={handleMouseDown}
         >
           <div className="w-8 h-1 bg-[#444] rounded-full group-hover:bg-[#FFFF00] transition-colors" />
         </div>
