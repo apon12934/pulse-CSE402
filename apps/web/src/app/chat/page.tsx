@@ -10,7 +10,7 @@ export default function ChatPage() {
     {
       id: 'init',
       role: 'ai',
-      text: 'Gemini Core initialized. Ready for scheduling directives.',
+      text: 'Pulse Assistant initialized. Ready for scheduling directives.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
     }
   ]);
@@ -142,7 +142,7 @@ export default function ChatPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             className="w-full bg-[#121212] border-[#262626] text-white pr-12 font-mono focus-visible:ring-0 focus-visible:border-[#FFFF00] rounded-none py-4 text-sm"
-            placeholder="Command Gemini..."
+            placeholder="Command Pulse Assistant..."
             disabled={isProcessing}
           />
           <Button 
