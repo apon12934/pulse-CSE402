@@ -374,7 +374,7 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
   }
 
   // If this is a weekly conversation:
-  if (messages.some(m => m.content.toLowerCase().includes("weekly"))) {
+  if (messages.some(m => m.content.toLowerCase().includes("week"))) {
     const parsedWeekly = await converseWeekly(messages);
     
     // Save the AI's response to maintain conversation history for Gemini
