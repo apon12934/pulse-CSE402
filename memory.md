@@ -116,3 +116,9 @@
 *   **Avatar Upload:** Implemented completely client-side intelligent 1:1 image cropping and WebP compression before uploading to Cloudinary, ensuring blisteringly fast image delivery.
 *   **Authentication Engine:** Upgraded `login` to check against either email or username natively. Repaired a critical bug in `loginSchema` where Zod actively rejected username strings by strictly enforcing `.email()` validation.
 *   **Security & Data:** Restyled Danger Zone buttons. Implemented custom `DELETE` typing validation modals for account deletion and data resets. Added animated Show/Hide toggles globally on all password fields.
+
+**[2026-08-09] [Antigravity / Gemini Experimental] UI Polish & Branding Refactor**
+*   **Logo Integration:** Replaced the legacy "AI CORE" Sidebar text and "PULSE" Header text with the custom-designed Pulse SVG logo in the global Header. Preserved original `.ai` source files in the `/design` directory.
+*   **Web Assets:** Purged default Next.js icons and integrated native Next.js App Router metadata files (`icon.png`, `apple-icon.png`, `opengraph-image.png`).
+*   **Lexicon Update:** Rebranded internal AI mechanics from "Gemini Core" to "Pulse Assistant (Gemini)". 
+*   **Dashboard Cleanup:** Renamed UI components for clarity ("UPCOMING PIPELINE" → "UPCOMING TASKS", "NOW PLAYING" → "CURRENT FOCUS"). Improved Upcoming Tasks time layout to a streamlined single-line horizontal format with electric yellow text.
