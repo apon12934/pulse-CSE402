@@ -15,8 +15,9 @@ const HOUR_HEIGHT = 80; // px per hour
 
 // Removed inline time functions as they are now in TimelineBlock
 function formatHour(h: number): string {
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const display = h > 12 ? h - 12 : h === 0 ? 12 : h;
+  const realH = h % 24;
+  const ampm = realH >= 12 ? 'PM' : 'AM';
+  const display = realH > 12 ? realH - 12 : realH === 0 ? 12 : realH;
   return `${display.toString().padStart(2, '0')}:00 ${ampm}`;
 }
 
@@ -106,11 +107,24 @@ export default function TimelinePage() {
     }
   };
 
+  const getEffectiveHour = (dateStr: string | Date) => {
+    const d = new Date(dateStr);
+    let h = d.getHours();
+    const taskDate = new Date(d);
+    taskDate.setHours(0, 0, 0, 0);
+    const baseDate = new Date(currentDate);
+    baseDate.setHours(0, 0, 0, 0);
+    if (taskDate.getTime() > baseDate.getTime()) {
+      h += 24;
+    }
+    return h;
+  };
+
   const hourStart = tasks.length > 0 
-    ? Math.max(0, Math.min(...tasks.map(t => new Date(t.startTime).getHours())) - 1)
+    ? Math.max(0, Math.min(...tasks.map(t => getEffectiveHour(t.startTime))) - 1)
     : 8;
   const hourEnd = tasks.length > 0
-    ? Math.min(23, Math.max(...tasks.map(t => new Date(t.endTime).getHours())) + 1)
+    ? Math.max(23, Math.max(...tasks.map(t => getEffectiveHour(t.endTime))) + 1)
     : 23;
   
   const HOURS = Array.from({ length: hourEnd - hourStart + 1 }, (_, i) => hourStart + i);
@@ -315,6 +329,7 @@ export default function TimelinePage() {
                   onMove={handleMove}
                   onError={(msg) => setLocalError(msg)}
                   baseZIndex={baseZIndex}
+                  currentDate={currentDate}
                 />
               );
             })}

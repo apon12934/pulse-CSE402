@@ -5,10 +5,22 @@ import { cn } from '@pulse/ui';
 import { Pencil, Trash2, GripVertical } from 'lucide-react';
 import { apiPost } from '@/lib/api';
 
-function timeToOffset(dateString: string, hourStart: number, hourHeight: number): number {
+function timeToOffset(dateString: string, hourStart: number, hourHeight: number, currentDate: Date): number {
   const d = new Date(dateString);
-  const h = d.getHours();
+  let h = d.getHours();
   const m = d.getMinutes();
+  
+  // If the task falls on the next day relative to the timeline's current date, add 24 hours
+  // so it renders at the bottom of the grid instead of wrapping to the top.
+  const taskDate = new Date(d);
+  taskDate.setHours(0, 0, 0, 0);
+  const baseDate = new Date(currentDate);
+  baseDate.setHours(0, 0, 0, 0);
+  
+  if (taskDate.getTime() > baseDate.getTime()) {
+    h += 24;
+  }
+  
   return (h - hourStart + m / 60) * hourHeight;
 }
 
@@ -38,13 +50,14 @@ interface TimelineBlockProps {
   onMove: (block: any, newStartTimeISO: string) => Promise<void>;
   onError: (msg: string) => void;
   baseZIndex: number;
+  currentDate: Date;
 }
 
 export function TimelineBlock({ 
   block, hourStart, hourHeight, totalHeight, onDelete, onEdit, onRefresh,
-  onMove, onError, baseZIndex
+  onMove, onError, baseZIndex, currentDate
 }: TimelineBlockProps) {
-  const initialTop = timeToOffset(block.startTime, hourStart, hourHeight);
+  const initialTop = timeToOffset(block.startTime, hourStart, hourHeight, currentDate);
   const initialHeight = Math.max(timeToHeight(block.startTime, block.endTime, hourHeight), 40);
 
   const [height, setHeight] = useState(initialHeight);
