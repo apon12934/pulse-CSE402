@@ -211,27 +211,41 @@ export function AiChatPanel() {
 
                   {msg.status === 'weekly_draft' && msg.tasks && msg.tasks.length > 0 && (
                     <div className="mt-3 flex flex-col gap-2 border-t border-[#262626] pt-3">
-                      <div className="text-[10px] font-mono text-[#FFFF00] uppercase tracking-wider">Proposed Weekly Template:</div>
-                        {msg.tasks.map((t: any, i: number) => {
-                          const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                          const dayName = days[t.dayOfWeek];
-                          const formatHr = (h: number, m: number) => {
-                            const ampm = h >= 12 ? 'PM' : 'AM';
-                            const hr = h % 12 || 12;
-                            return `${hr}:${m.toString().padStart(2, '0')} ${ampm}`;
-                          };
-                          return (
-                            <div key={i} className="flex flex-col gap-1 bg-[#1A1A1A] p-2 border border-[#FFFF00]/30">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-white text-xs">{t.title}</span>
-                                <span className="text-[10px] text-[#FFFF00] font-mono">{dayName}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
-                                <span>{formatHr(t.startHour, t.startMinute)} → {formatHr(t.endHour, t.endMinute)}</span>
-                              </div>
+                      <div className="text-[10px] font-mono text-[#FFFF00] uppercase tracking-wider mb-2">Proposed Weekly Template:</div>
+                      {(() => {
+                        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                        const grouped = msg.tasks.reduce((acc: any, t: any) => {
+                          if (!acc[t.dayOfWeek]) acc[t.dayOfWeek] = [];
+                          acc[t.dayOfWeek].push(t);
+                          return acc;
+                        }, {});
+
+                        return Object.entries(grouped).sort(([a], [b]) => Number(a) - Number(b)).map(([day, dayTasks]: [string, any]) => (
+                          <div key={day} className="flex flex-col gap-2 mb-2">
+                            <div className="text-[11px] font-mono font-semibold text-white uppercase tracking-widest border-b border-[#262626] pb-1 mt-1">
+                              {days[Number(day)]}
                             </div>
-                          );
-                        })}
+                            {dayTasks.map((t: any, i: number) => {
+                              const formatHr = (h: number, m: number) => {
+                                const ampm = h >= 12 ? 'PM' : 'AM';
+                                const hr = h % 12 || 12;
+                                return `${hr}:${m.toString().padStart(2, '0')} ${ampm}`;
+                              };
+                              return (
+                                <div key={i} className="flex flex-col gap-1 bg-[#1A1A1A] p-2 border border-[#FFFF00]/30 hover:bg-[#222] transition-colors">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-bold text-white text-xs">{t.title}</span>
+                                    <span className="text-[10px] text-[#FFFF00] font-mono">{t.energyLevel}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
+                                    <span>{formatHr(t.startHour, t.startMinute)} → {formatHr(t.endHour, t.endMinute)}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ));
+                      })()}
                     </div>
                   )}
                 </div>
