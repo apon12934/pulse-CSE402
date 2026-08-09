@@ -17,7 +17,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-full h-full bg-black border-r border-[#262626] flex-col shrink-0">
       <div className="p-6 pb-4">
-        <div className="font-mono font-bold text-[#FFFF00] text-sm tracking-widest">AI CORE</div>
+        <img src="/logo.svg" alt="Pulse Logo" className="h-6 w-auto mb-2 opacity-90 hover:opacity-100 transition-opacity" />
         <div className="font-mono text-[#666] text-[10px] mt-1 tracking-wider">V2.4 STATUS: ACTIVE</div>
       </div>
 
