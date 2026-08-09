@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Input, Button, StatusChip } from '@pulse/ui';
+import { PasswordField } from '@/components/ui/PasswordField';
 import { apiPost } from '../../lib/api';
 import { useAuthStore } from '../../store/auth';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('apon@university.edu');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +46,7 @@ export default function LoginPage() {
             <div className="h-3 w-3 rounded-none bg-[#FFFF00]" />
           </div>
           <p className="font-mono text-[11px] uppercase tracking-widest text-[#888]">
-            {isLogin ? 'SYSTEM AUTHENTICATION' : 'NEW SYSTEM IDENTITY'}
+            {isLogin ? 'SIGN IN TO YOUR ACCOUNT' : 'CREATE AN ACCOUNT'}
           </p>
         </div>
 
@@ -62,22 +63,25 @@ export default function LoginPage() {
             )}
             
             <Input
-              label="EMAIL ADDRESS"
-              type="email"
+              label={isLogin ? "EMAIL OR USERNAME" : "EMAIL ADDRESS"}
+              type={isLogin ? "text" : "email"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="apon@university.edu"
+              placeholder={isLogin ? "apon@university.edu or apon123" : "apon@university.edu"}
               required
             />
             
-            <Input
-              label="PASSWORD"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="font-mono text-[12px] font-medium leading-4 tracking-[0.05em] uppercase text-[#888]">
+                PASSWORD
+              </label>
+              <PasswordField
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
             {error && (
               <div className="border border-[#FF4444] bg-[#FF4444]/10 p-3">
@@ -86,7 +90,7 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" variant="primary" size="lg" className="w-full mt-2" disabled={isLoading}>
-              {isLoading ? 'PROCESSING...' : (isLogin ? 'AUTHENTICATE' : 'INITIALIZE PROFILE')}
+              {isLoading ? 'PROCESSING...' : (isLogin ? 'SIGN IN' : 'CREATE ACCOUNT')}
             </Button>
           </form>
         </Card>
@@ -97,7 +101,7 @@ export default function LoginPage() {
             onClick={() => setIsLogin(!isLogin)}
             className="font-mono text-[11px] text-[#888] hover:text-[#FFFF00] uppercase tracking-widest transition-colors"
           >
-            {isLogin ? 'Initialize new identity →' : '← Return to authentication'}
+            {isLogin ? 'Create an account →' : '← Back to sign in'}
           </button>
         </div>
       </div>

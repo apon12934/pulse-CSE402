@@ -47,9 +47,17 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   // Don't show children while loading or if not authenticated on a protected route
   if (isLoading && pathname !== '/login') {
     return (
-      <div className="flex items-center justify-center h-full w-full bg-[#000000]">
-        <div className="font-mono text-xs text-[#FFFF00] uppercase tracking-widest animate-pulse">
-          VERIFYING_AUTH_TOKEN...
+      <div className="flex flex-col items-center justify-center h-full w-full bg-black gap-6">
+        <img src="/logo.svg" alt="Pulse Logo" className="h-12 w-auto animate-pulse opacity-80" />
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1.5">
+            <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-[#FFFF00] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+          <span className="font-mono text-[10px] text-[#888] uppercase tracking-[0.2em]">
+            Waking server from sleep...
+          </span>
         </div>
       </div>
     );

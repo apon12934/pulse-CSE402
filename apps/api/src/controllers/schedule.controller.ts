@@ -12,6 +12,42 @@ import {
 } from "../services/gemini.service.js";
 
 /**
+ * GET /api/schedule/chat/history
+ * Fetch the user's persistent chat history.
+ */
+export async function getChatHistory(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+
+  const messages = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const formatted = messages.map(m => ({
+    id: m.id,
+    role: m.role,
+    text: m.content,
+    timestamp: m.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  }));
+
+  res.json({ messages: formatted });
+}
+
+/**
+ * DELETE /api/schedule/chat/history
+ * Clear the user's persistent chat history.
+ */
+export async function clearChatHistory(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+
+  await prisma.chatMessage.deleteMany({
+    where: { userId }
+  });
+
+  res.json({ success: true });
+}
+
+/**
  * POST /api/schedule/generate
  * Takes the user's tasks for a given date and asks Gemini to build an optimised timeline.
  */
@@ -295,10 +331,30 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
  */
 export async function chatSchedule(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { messages, date } = req.body as { messages: { role: "user" | "model"; content: string }[]; date: string };
+  const { message, date } = req.body as { message: string; date: string };
 
-  if (!messages || !Array.isArray(messages)) throw new AppError(400, "messages array is required");
+  if (!message) throw new AppError(400, "message is required");
   if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
+
+  // Save the user's message
+  await prisma.chatMessage.create({
+    data: {
+      userId,
+      role: "user",
+      content: message
+    }
+  });
+
+  // Fetch complete history
+  const dbMessages = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" }
+  });
+
+  const messages = dbMessages.map(m => ({
+    role: m.role === "ai" ? "model" as const : "user" as const,
+    content: m.content
+  }));
 
   // If this is a weekly conversation:
   if (messages.some(m => m.content.toLowerCase().includes("weekly"))) {
@@ -347,6 +403,15 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
     }
   }
 
+  // Save the AI's response
+  await prisma.chatMessage.create({
+    data: {
+      userId,
+      role: "ai",
+      content: parsed.reply
+    }
+  });
+
   res.status(201).json({
     reply: parsed.reply,
     status: parsed.status,
@@ -354,4 +419,74 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
     draftTasks: parsed.tasks ?? [],
     tasks: createdTasks,
   });
+}
+
+/**
+ * DELETE /api/schedule/reset-day
+ * Delete all tasks for the given date and restore from the Weekly Template if it exists.
+ */
+export async function resetDay(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+  const date = typeof req.query["date"] === "string" ? req.query["date"] : undefined;
+
+  if (!date) throw new AppError(400, "date query param is required (YYYY-MM-DD)");
+
+  const dayStart = new Date(date);
+  const dayEnd = new Date(date);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+
+  // 1. Delete all current tasks for that date
+  await prisma.task.deleteMany({
+    where: {
+      userId,
+      startTime: { gte: dayStart, lt: dayEnd },
+    },
+  });
+
+  // 2. Fetch template tasks for this day of the week
+  const dayOfWeek = dayStart.getDay();
+  const templates = await prisma.templateTask.findMany({
+    where: { userId, dayOfWeek },
+  });
+
+  // 3. If templates exist, restore them for this specific date
+  if (templates.length > 0) {
+    const instancesToCreate = templates.map((template) => {
+      const startTime = new Date(dayStart);
+      startTime.setHours(template.startHour, template.startMinute, 0, 0);
+
+      const endTime = new Date(dayStart);
+      endTime.setHours(template.endHour, template.endMinute, 0, 0);
+
+      return {
+        userId,
+        title: template.title,
+        type: template.type,
+        energyLevel: template.energyLevel,
+        priority: template.priority,
+        startTime,
+        endTime,
+        status: "Upcoming",
+        templateTaskId: template.id,
+      };
+    });
+
+    await prisma.task.createMany({ data: instancesToCreate as any });
+  }
+
+  res.json({ success: true, restored: templates.length });
+}
+
+/**
+ * DELETE /api/schedule/clear-all
+ * Delete all tasks for the user.
+ */
+export async function clearAllTasks(req: Request, res: Response): Promise<void> {
+  const userId = req.userId!;
+
+  await prisma.task.deleteMany({
+    where: { userId },
+  });
+
+  res.json({ success: true });
 }

@@ -92,8 +92,15 @@ export default function TimelinePage() {
         date: dateStr 
       });
       await fetchTasks(currentDate);
-    } catch (err) {
-      console.error('Failed to move task:', err);
+    } catch (err: any) {
+      console.warn('Failed to move task:', err);
+      const msg = err.message || 'Failed to move task';
+      if (msg.includes('429') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+        setLocalError('AI Quota Exceeded. Please try again in a minute.');
+      } else {
+        setLocalError('Failed to move task. Please try again.');
+      }
+      throw err; // Rethrow so TimelineBlock can snap back to initial position
     } finally {
       setIsReordering(false);
     }
@@ -161,12 +168,12 @@ export default function TimelinePage() {
           {tasks.length > 0 && (
             <button
               onClick={async () => {
-                if (window.confirm(`Clear all ${tasks.length} task(s) for ${dateLabel}? This cannot be undone.`)) {
+                if (window.confirm(`Reset ${dateLabel} back to your weekly routine? Custom tasks will be lost.`)) {
                   await clearDay(currentDate);
                 }
               }}
               className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[#666] hover:text-red-500 border border-[#262626] hover:border-red-500/50 px-3 py-2 transition-colors"
-              title="Reset — delete all tasks for this day"
+              title="Reset — restore tasks to your weekly template"
             >
               <Trash2 className="w-3.5 h-3.5" />
               RESET DAY
@@ -306,6 +313,7 @@ export default function TimelinePage() {
                   onEdit={setEditingTask}
                   onRefresh={() => fetchTasks(currentDate)}
                   onMove={handleMove}
+                  onError={(msg) => setLocalError(msg)}
                   baseZIndex={baseZIndex}
                 />
               );

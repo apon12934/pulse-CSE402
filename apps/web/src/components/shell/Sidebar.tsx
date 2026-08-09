@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGrid, FileText, BarChart3, Globe, SlidersHorizontal } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart3, Globe, SlidersHorizontal, Settings } from 'lucide-react'
 import { cn, Button } from '@pulse/ui'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -8,9 +8,7 @@ import { usePathname } from 'next/navigation'
 const NAV_ITEMS = [
   { name: 'DASHBOARD', icon: LayoutGrid, path: '/' },
   { name: 'TIMELINE', icon: FileText, path: '/timeline' },
-  { name: 'ANALYTICS', icon: BarChart3, path: '/analytics' },
-  { name: 'CHAT', icon: Globe, path: '/chat' },
-  { name: 'CONFIG', icon: SlidersHorizontal, path: '/config' },
+  { name: 'SETTINGS', icon: Settings, path: '/settings' },
 ]
 
 export function Sidebar() {
@@ -18,10 +16,7 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-full h-full bg-black border-r border-[#262626] flex-col shrink-0">
-      <div className="p-6 pb-4">
-        <div className="font-mono font-bold text-[#FFFF00] text-sm tracking-widest">AI CORE</div>
-        <div className="font-mono text-[#666] text-[10px] mt-1 tracking-wider">V2.4 STATUS: ACTIVE</div>
-      </div>
+      <div className="h-6"></div>
 
       <nav className="flex-1 flex flex-col mt-4">
         {NAV_ITEMS.map((item) => {
@@ -44,11 +39,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 mt-auto">
-        <Button className="w-full text-xs font-mono uppercase bg-[#FFFF00] text-black hover:bg-yellow-400 border-none rounded-none">
-          + NEW ANCHOR
-        </Button>
-      </div>
     </aside>
   )
 }

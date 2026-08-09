@@ -71,13 +71,13 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   clearDay: async (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    set({ tasks: [] }); // Optimistic clear
     try {
       const { apiFetch } = await import('@/lib/api');
-      await apiFetch(`/api/tasks?date=${dateStr}`, { method: 'DELETE' });
+      await apiFetch(`/api/schedule/reset-day?date=${dateStr}`, { method: 'DELETE' });
+      get().fetchTasks(date);
     } catch (err: any) {
-      console.error('Failed to clear day:', err);
-      set({ error: err.message || 'Failed to clear day' });
+      console.error('Failed to reset day:', err);
+      set({ error: err.message || 'Failed to reset day' });
     }
   }
 }));

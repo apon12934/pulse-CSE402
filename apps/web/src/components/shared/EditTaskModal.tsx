@@ -106,15 +106,24 @@ export function EditTaskModal({ task, isOpen, onClose, currentDate }: EditTaskMo
             required
           />
         </div>
-        <Input
-          label="Priority (1-10)"
-          type="number"
-          min="1"
-          max="10"
-          value={form.priority}
-          onChange={(e) => setForm({ ...form, priority: parseInt(e.target.value) })}
-          required
-        />
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center">
+            <label className="font-mono text-[10px] text-[#A3A3A3] uppercase tracking-widest">
+              Priority Level <span className="text-white ml-2">{form.priority}/10</span>
+            </label>
+            <span className="font-mono text-[10px] text-[#666]">
+              {form.priority === 10 ? 'CRITICAL' : form.priority <= 3 ? 'LOW' : ''}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="10"
+            value={form.priority}
+            onChange={(e) => setForm({ ...form, priority: parseInt(e.target.value) })}
+            className="w-full h-1.5 bg-[#262626] rounded-none appearance-none cursor-pointer accent-[#FFFF00] hover:accent-white transition-colors"
+          />
+        </div>
         <div className="flex gap-3 mt-2">
           <Button variant="ghost" type="button" className="flex-1" onClick={onClose}>
             CANCEL
