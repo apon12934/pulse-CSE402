@@ -23,12 +23,34 @@ export async function getChatHistory(req: Request, res: Response): Promise<void>
     orderBy: { createdAt: "asc" },
   });
 
-  const formatted = messages.map(m => ({
-    id: m.id,
-    role: m.role,
-    text: m.content,
-    timestamp: m.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-  }));
+  const formatted = messages.map(m => {
+    let text = m.content;
+    let status = 'chatting';
+    let tasks = undefined;
+    let weeklyTasks = undefined;
+
+    if (m.role === 'ai') {
+      try {
+        const parsed = JSON.parse(m.content);
+        text = parsed.text || m.content;
+        status = parsed.status || 'chatting';
+        tasks = parsed.tasks;
+        weeklyTasks = parsed.weeklyTasks;
+      } catch {
+        // fallback for older plain text messages
+      }
+    }
+
+    return {
+      id: m.id,
+      role: m.role,
+      text,
+      status,
+      tasks,
+      weeklyTasks,
+      timestamp: m.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+    };
+  });
 
   res.json({ messages: formatted });
 }
@@ -351,10 +373,19 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
     orderBy: { createdAt: "asc" }
   });
 
-  const rawMessages = dbMessages.map(m => ({
-    role: m.role === "ai" ? "model" as const : "user" as const,
-    content: m.content
-  }));
+  const rawMessages = dbMessages.map(m => {
+    let content = m.content;
+    if (m.role === "ai") {
+      try {
+        const parsed = JSON.parse(content);
+        content = parsed.text || content;
+      } catch {}
+    }
+    return {
+      role: m.role === "ai" ? "model" as const : "user" as const,
+      content
+    };
+  });
 
   // Gemini strictly requires alternating roles (user -> model -> user)
   // Collapse consecutive messages of the same role to prevent API 400 crashes
@@ -382,7 +413,11 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
       data: {
         userId,
         role: "ai",
-        content: parsedWeekly.reply
+        content: JSON.stringify({
+          text: parsedWeekly.reply,
+          status: parsedWeekly.status,
+          weeklyTasks: parsedWeekly.weeklyTasks
+        })
       }
     });
 
@@ -432,7 +467,11 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
     data: {
       userId,
       role: "ai",
-      content: parsed.reply
+      content: JSON.stringify({
+      text: parsed.reply,
+      status: parsed.status,
+      tasks: parsed.tasks
+    })
     }
   });
 
