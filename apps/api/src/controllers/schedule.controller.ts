@@ -360,8 +360,15 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
   if (messages.some(m => m.content.toLowerCase().includes("weekly"))) {
     const parsedWeekly = await converseWeekly(messages);
     
-    // If approved, we route to generateWeeklyTemplate internally by sending a POST to our own service or doing it inline
-    // Actually, it's cleaner to let the frontend handle the approval and call POST /api/weekly-template/generate
+    // Save the AI's response to maintain conversation history for Gemini
+    await prisma.chatMessage.create({
+      data: {
+        userId,
+        role: "ai",
+        content: parsedWeekly.reply
+      }
+    });
+
     res.json({
       reply: parsedWeekly.reply,
       status: parsedWeekly.status,

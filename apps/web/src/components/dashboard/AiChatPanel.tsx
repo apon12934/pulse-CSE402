@@ -95,8 +95,17 @@ export function AiChatPanel() {
         localTime: new Date().toLocaleString()
       });
 
-      if (response.status === 'weekly_approved' && response.weeklyTasks?.length > 0) {
-        await apiPost('/api/weekly-template/generate', { tasks: response.weeklyTasks });
+      let finalWeeklyTasks = response.weeklyTasks || [];
+      if (response.status === 'weekly_approved' && finalWeeklyTasks.length === 0) {
+        // Fallback to the last proposed draft in the chat history
+        const lastDraft = messages.slice().reverse().find(m => m.role === 'ai' && m.status === 'weekly_draft');
+        if (lastDraft && lastDraft.tasks) {
+          finalWeeklyTasks = lastDraft.tasks;
+        }
+      }
+
+      if (response.status === 'weekly_approved' && finalWeeklyTasks.length > 0) {
+        await apiPost('/api/weekly-template/generate', { tasks: finalWeeklyTasks });
         await fetchTasks(today);
       }
 
