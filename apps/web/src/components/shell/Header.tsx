@@ -26,7 +26,7 @@ export function Header() {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <span className="text-[#FFFF00] font-sans font-bold text-lg tracking-wider">PULSE</span>
+        <img src="/logo.svg" alt="Pulse" className="h-5 w-auto ml-1" />
       </div>
       
 
