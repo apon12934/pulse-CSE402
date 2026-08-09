@@ -267,6 +267,10 @@ export function AiChatPanel() {
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
+                // On mobile/touch devices, allow Enter to just add a new line in the textarea
+                if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) {
+                  return;
+                }
                 e.preventDefault();
                 handleSend();
               }
