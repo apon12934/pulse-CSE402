@@ -91,7 +91,8 @@ export function AiChatPanel() {
 
       const response = await apiPost<any>('/api/schedule/chat', {
         message: userMessage.text,
-        date: dateStr
+        date: dateStr,
+        localTime: new Date().toLocaleString()
       });
 
       if (response.status === 'weekly_approved' && response.weeklyTasks?.length > 0) {

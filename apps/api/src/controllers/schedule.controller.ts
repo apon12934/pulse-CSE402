@@ -331,7 +331,7 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
  */
 export async function chatSchedule(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { message, date } = req.body as { message: string; date: string };
+  const { message, date, localTime } = req.body as { message: string; date: string; localTime?: string };
 
   if (!message) throw new AppError(400, "message is required");
   if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
@@ -370,7 +370,7 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const parsed = await converseSchedule(messages, date);
+  const parsed = await converseSchedule(messages, date, localTime);
 
   // If approved, create tasks from drafted input
   const createdTasks = [];

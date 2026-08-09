@@ -278,8 +278,10 @@ export async function moveSchedule(
 export async function converseSchedule(
   messages: { role: "user" | "model"; content: string }[],
   date: string,
+  localTime?: string
 ): Promise<ParsedChatInput> {
   const nowISO = new Date().toISOString();
+  const timeContext = localTime ? `(Local time: ${localTime})` : nowISO;
   const contents = messages.map(m => ({
     role: m.role,
     parts: [{ text: m.content }]
@@ -289,7 +291,7 @@ export async function converseSchedule(
     model: "gemini-flash-latest",
     contents,
     config: {
-      systemInstruction: buildChatSystemPrompt(nowISO, date),
+      systemInstruction: buildChatSystemPrompt(timeContext, date),
       temperature: 0.2,
       responseMimeType: "application/json",
     },
