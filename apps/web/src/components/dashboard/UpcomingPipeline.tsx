@@ -50,9 +50,9 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
                   "w-44 shrink-0 flex items-center gap-2 font-mono text-[11px]",
                   isCompleted ? "text-[#666]" : "text-[#A3A3A3]"
                 )}>
-                  <span className="text-white font-semibold tracking-wider">{formatTime(task.startTime)}</span>
+                  <span className="text-[#FFFF00] font-semibold tracking-wider">{formatTime(task.startTime)}</span>
                   <span className="text-[#555]">→</span>
-                  <span className="text-white font-semibold tracking-wider">{formatTime(task.endTime)}</span>
+                  <span className="text-[#FFFF00] font-semibold tracking-wider">{formatTime(task.endTime)}</span>
                 </div>
                 
                 <div className={cn(
