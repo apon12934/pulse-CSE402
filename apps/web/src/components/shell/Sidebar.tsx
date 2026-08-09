@@ -4,6 +4,7 @@ import { LayoutGrid, FileText, BarChart3, Globe, SlidersHorizontal, Settings } f
 import { cn, Button } from '@pulse/ui'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useLayoutStore } from '@/store/layout'
 
 const NAV_ITEMS = [
   { name: 'DASHBOARD', icon: LayoutGrid, path: '/' },
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { setSidebarOpen } = useLayoutStore()
 
   return (
     <aside className="flex w-full h-full bg-black border-r border-[#262626] flex-col shrink-0">
@@ -25,6 +27,7 @@ export function Sidebar() {
             <Link 
               key={item.path} 
               href={item.path}
+              onClick={() => setSidebarOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 font-mono text-[12px] uppercase tracking-wide transition-colors border-l-4",
                 isActive 

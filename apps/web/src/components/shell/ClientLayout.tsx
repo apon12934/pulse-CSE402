@@ -36,20 +36,20 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
           <>
             {(isSidebarOpen || isChatOpen) && (
               <div 
-                className="fixed top-14 bottom-0 left-0 right-0 bg-black/80 z-40 lg:hidden"
+                className="fixed top-14 bottom-0 left-0 right-0 bg-black/80 z-[100] lg:hidden"
                 onClick={() => { setSidebarOpen(false); setChatOpen(false); }}
               />
             )}
             
             <div className={cn(
-              "fixed top-14 bottom-0 left-0 z-50 w-[280px] bg-[#000000] border-r border-[#262626] transform transition-transform duration-300 ease-in-out lg:hidden",
+              "fixed top-14 bottom-0 left-0 z-[101] w-[280px] bg-[#000000] border-r border-[#262626] transform transition-transform duration-300 ease-in-out lg:hidden",
               isSidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
               <Sidebar />
             </div>
 
             <div className={cn(
-              "fixed top-14 bottom-0 right-0 z-50 w-[320px] bg-[#000000] border-l border-[#262626] transform transition-transform duration-300 ease-in-out lg:hidden",
+              "fixed top-14 bottom-0 right-0 z-[101] w-[320px] bg-[#000000] border-l border-[#262626] transform transition-transform duration-300 ease-in-out lg:hidden",
               isChatOpen ? "translate-x-0" : "translate-x-full"
             )}>
               <AiChatPanel />
