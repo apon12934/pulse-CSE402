@@ -26,7 +26,7 @@ export function Header() {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <img src="/logo.svg" alt="Pulse" className="h-5 w-auto ml-1" />
+        <img src="/logo.svg" alt="Pulse" className="h-8 w-auto ml-1" />
       </div>
       
 
