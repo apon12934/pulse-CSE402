@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, X, Bot, SendHorizontal, Trash2, Loader2 } from 'lucide-react';
+import { Check, X, SendHorizontal, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@pulse/ui';
 import { apiPost, apiGet, apiDelete } from '@/lib/api';
 import { format } from 'date-fns';
+import { GeminiIcon } from '@/components/shared/GeminiIcon';
 
 import { useTaskStore } from '@/store/tasks';
 
@@ -145,7 +146,7 @@ export function AiChatPanel() {
       {/* Header */}
       <div className="h-14 border-b border-[#262626] flex items-center justify-between px-4 shrink-0 bg-[#000000]">
         <div className="flex items-center gap-2">
-          <Bot className="w-4 h-4 text-white" />
+          <GeminiIcon className="w-4 h-4 text-[#FFFF00]" />
           <span className="font-mono text-[11px] uppercase tracking-wide text-white">Pulse Assistant (Gemini)</span>
         </div>
         <div className="flex items-center gap-3">
