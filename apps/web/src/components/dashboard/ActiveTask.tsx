@@ -172,7 +172,7 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
 
       <div className="font-mono uppercase tracking-[0.3em] text-[#666] text-[10px] mb-2 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-[#FFFF00] animate-pulse" />
-        NOW PLAYING
+        CURRENT FOCUS
       </div>
       
       <div className="font-sans text-3xl font-bold text-white mb-2 truncate">

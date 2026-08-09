@@ -23,7 +23,7 @@ export function UpcomingPipeline({ tasks }: UpcomingPipelineProps) {
     <div className="w-full h-full">
       <div className="flex items-center gap-4 mb-4">
         <h2 className="text-[#A3A3A3] font-mono text-[11px] uppercase tracking-[0.3em]">
-          UPCOMING PIPELINE
+          UPCOMING TASKS
         </h2>
         <div className="h-[1px] flex-1 bg-[#262626]" />
       </div>
