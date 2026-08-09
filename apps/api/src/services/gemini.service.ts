@@ -288,7 +288,7 @@ export async function converseSchedule(
   }));
 
   const response = await ai.models.generateContent({
-    model: "gemini-flash-latest",
+    model: "gemini-3.5-flash-lite",
     contents,
     config: {
       systemInstruction: buildChatSystemPrompt(timeContext, date),
@@ -322,7 +322,7 @@ export async function converseWeekly(
   }));
 
   const response = await ai.models.generateContent({
-    model: "gemini-flash-latest",
+    model: "gemini-3.5-flash-lite",
     contents,
     config: {
       systemInstruction: buildWeeklySystemPrompt(),

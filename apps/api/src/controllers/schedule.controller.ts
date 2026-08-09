@@ -351,10 +351,27 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
     orderBy: { createdAt: "asc" }
   });
 
-  const messages = dbMessages.map(m => ({
+  const rawMessages = dbMessages.map(m => ({
     role: m.role === "ai" ? "model" as const : "user" as const,
     content: m.content
   }));
+
+  // Gemini strictly requires alternating roles (user -> model -> user)
+  // Collapse consecutive messages of the same role to prevent API 400 crashes
+  const messages: typeof rawMessages = [];
+  for (const msg of rawMessages) {
+    const last = messages[messages.length - 1];
+    if (last && last.role === msg.role) {
+      last.content += `\n${msg.content}`;
+    } else {
+      messages.push({ ...msg });
+    }
+  }
+
+  // Gemini must start with a user message
+  if (messages.length > 0 && messages[0]?.role === "model") {
+    messages.shift();
+  }
 
   // If this is a weekly conversation:
   if (messages.some(m => m.content.toLowerCase().includes("weekly"))) {
