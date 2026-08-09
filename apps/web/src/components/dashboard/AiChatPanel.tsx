@@ -26,7 +26,7 @@ export function AiChatPanel() {
             {
               id: 'init',
               role: 'ai',
-              text: 'Gemini Core initialized. Ready to draft your schedule. What are your goals today?',
+              text: 'Pulse Assistant initialized. Ready to draft your schedule. What are your goals today?',
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
               status: 'chatting'
             }
@@ -48,7 +48,7 @@ export function AiChatPanel() {
         {
           id: 'init',
           role: 'ai',
-          text: 'Gemini Core initialized. Ready to draft your schedule. What are your goals today?',
+          text: 'Pulse Assistant initialized. Ready to draft your schedule. What are your goals today?',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
           status: 'chatting'
         }
@@ -136,7 +136,7 @@ export function AiChatPanel() {
       <div className="h-14 border-b border-[#262626] flex items-center justify-between px-4 shrink-0 bg-[#000000]">
         <div className="flex items-center gap-2">
           <Bot className="w-4 h-4 text-white" />
-          <span className="font-mono text-[11px] uppercase tracking-wide text-white">Gemini Core</span>
+          <span className="font-mono text-[11px] uppercase tracking-wide text-white">Pulse Assistant (Gemini)</span>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -273,7 +273,7 @@ export function AiChatPanel() {
             }}
             rows={1}
             className="w-full bg-[#121212] border border-[#262626] text-white pr-10 pl-3 py-3 font-mono text-xs focus-visible:outline-none focus-visible:border-[#FFFF00] rounded-none resize-none overflow-y-auto min-h-[42px] max-h-[150px] leading-relaxed transition-colors placeholder:text-[#666] scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-            placeholder="Command Gemini..."
+            placeholder="Command Pulse Assistant..."
             disabled={isProcessing}
           />
           <Button 
