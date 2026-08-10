@@ -133,7 +133,10 @@ export async function listTasks(req: Request, res: Response): Promise<void> {
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayEnd.getDate() + 1);
     
-    where["startTime"] = { gte: dayStart, lt: dayEnd };
+    where["AND"] = [
+      { startTime: { lt: dayEnd } },
+      { endTime: { gt: dayStart } }
+    ];
   }
 
   const tasks = await prisma.task.findMany({

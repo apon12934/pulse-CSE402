@@ -43,8 +43,15 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
     verifyAuth();
 
+    const handleUnauthorized = () => {
+      logout();
+      router.push('/login');
+    };
+    window.addEventListener('auth-unauthorized', handleUnauthorized);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('auth-unauthorized', handleUnauthorized);
     };
   }, [token, user, pathname, router, hydrate, logout]);
 

@@ -44,6 +44,10 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     } catch {
       // Ignored
     }
+    
+    if (response.status === 401 && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-unauthorized'));
+    }
     const err = new Error(errorMsg) as any;
     err.status = response.status;
     throw err;
