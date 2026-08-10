@@ -104,8 +104,13 @@ export default function TimelinePage() {
   const handleTaskMove = async (block: any, newStartTimeISO: string) => {
     // Optimistic snap is handled inside TimelineBlock
     // If it fails, TimelineBlock will revert its local state
-    const { apiPatch } = await import('@/lib/api');
-    await apiPatch(`/api/schedule/reschedule`, { taskId: block.id, newStartTime: newStartTimeISO });
+    const { apiPost } = await import('@/lib/api');
+    await apiPost(`/api/schedule/move`, { 
+      taskId: block.id, 
+      newStartTime: newStartTimeISO,
+      date: currentDate.toISOString().split('T')[0],
+      tz: new Date().getTimezoneOffset()
+    });
     fetchTasks(currentDate);
   };
 

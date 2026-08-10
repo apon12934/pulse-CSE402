@@ -52,7 +52,8 @@ export default function ChatPage() {
 
       const response = await apiPost<any>('/api/schedule/chat', {
         messages: apiMessages,
-        date: today
+        date: today,
+        tz: new Date().getTimezoneOffset()
       });
 
       const aiMessage = {

@@ -67,6 +67,7 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
       await apiPost('/api/schedule/reschedule', {
         taskId: task.id,
         newEndTime,
+        tz: new Date().getTimezoneOffset(),
       });
       await fetchTasks(new Date());
     } catch (err) {
@@ -102,7 +103,8 @@ export function ActiveTask({ task, nextTask }: ActiveTaskProps) {
       await apiPost('/api/schedule/move', { 
         taskId: nextTask.id, 
         newStartTime: nowISO,
-        date: dateStr 
+        date: dateStr,
+        tz: new Date().getTimezoneOffset()
       });
       await fetchTasks(new Date());
     } catch (err) {

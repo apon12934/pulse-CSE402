@@ -132,7 +132,8 @@ export function TimelineBlock({
         try {
           await apiPost('/api/schedule/reschedule', { 
             taskId: block.id, 
-            newEndTime: newEndTime.toISOString() 
+            newEndTime: newEndTime.toISOString(),
+            tz: new Date().getTimezoneOffset()
           });
           onRefresh();
         } catch (err: any) {

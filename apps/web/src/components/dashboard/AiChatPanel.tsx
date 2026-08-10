@@ -97,7 +97,8 @@ export function AiChatPanel() {
       const response = await apiPost<any>('/api/schedule/chat', {
         message: userMessage.text,
         date: dateStr,
-        localTime: new Date().toLocaleString()
+        localTime: new Date().toLocaleString(),
+        tz: new Date().getTimezoneOffset()
       });
 
       let finalWeeklyTasks = response.weeklyTasks || [];

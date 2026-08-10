@@ -15,6 +15,22 @@ import {
  * GET /api/schedule/chat/history
  * Fetch the user's persistent chat history.
  */
+
+// --- Timezone Helpers ---
+function toLocalISOString(date: Date, tzOffsetMinutes: number): string {
+  if (!date) return "";
+  const localMs = date.getTime() - (tzOffsetMinutes * 60000);
+  const localDate = new Date(localMs);
+  return localDate.toISOString().replace("Z", "");
+}
+
+function fromLocalISOStringToUTC(localStr: string, tzOffsetMinutes: number): Date {
+  if (!localStr) return new Date();
+  const localDate = new Date(localStr + "Z");
+  return new Date(localDate.getTime() + (tzOffsetMinutes * 60000));
+}
+// ------------------------
+
 export async function getChatHistory(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
 
@@ -75,12 +91,13 @@ export async function clearChatHistory(req: Request, res: Response): Promise<voi
  */
 export async function generateDailySchedule(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { date, energyLevel } = req.body as { date: string; energyLevel?: string };
+  const { date, energyLevel, tz = 0 } = req.body as { date: string; energyLevel?: string; tz?: number };
 
   if (!date) throw new AppError(400, "date is required (YYYY-MM-DD)");
 
-  const dayStart = new Date(date);
-  const dayEnd = new Date(date);
+  const dayStartUTC = new Date(date);
+  const dayStart = new Date(dayStartUTC.getTime() + (tz * 60000));
+  const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
   // Fetch existing tasks for the day
@@ -97,8 +114,8 @@ export async function generateDailySchedule(req: Request, res: Response): Promis
     .map((t) => ({
       title: t.title,
       type: "Anchor" as const,
-      startTime: t.startTime.toISOString(),
-      endTime: t.endTime.toISOString(),
+      startTime: toLocalISOString(t.startTime, tz),
+      endTime: toLocalISOString(t.endTime, tz),
       energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
       priority: t.priority,
       status: t.status as ScheduleItem["status"],
@@ -109,8 +126,8 @@ export async function generateDailySchedule(req: Request, res: Response): Promis
     .map((t) => ({
       title: t.title,
       type: "Fluid" as const,
-      startTime: t.startTime.toISOString(),
-      endTime: t.endTime.toISOString(),
+      startTime: toLocalISOString(t.startTime, tz),
+      endTime: toLocalISOString(t.endTime, tz),
       energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
       priority: t.priority,
       status: t.status as ScheduleItem["status"],
@@ -127,8 +144,8 @@ export async function generateDailySchedule(req: Request, res: Response): Promis
       await prisma.task.update({
         where: { id: match.id },
         data: {
-          startTime: new Date(item.startTime),
-          endTime: new Date(item.endTime),
+          startTime: fromLocalISOStringToUTC(item.startTime, tz),
+          endTime: fromLocalISOStringToUTC(item.endTime, tz),
           status: item.status ?? "Upcoming",
         },
       });
@@ -144,7 +161,7 @@ export async function generateDailySchedule(req: Request, res: Response): Promis
  */
 export async function dominoReschedule(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { taskId, newEndTime } = req.body as { taskId: string; newEndTime: string };
+  const { taskId, newEndTime, tz = 0 } = req.body as { taskId: string; newEndTime: string; tz?: number };
 
   if (!taskId || !newEndTime) {
     throw new AppError(400, "taskId and newEndTime are required");
@@ -161,8 +178,10 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
   });
 
   // Get remaining tasks for the same day, after the overrun task
-  const dayStart = new Date(overrunTask.startTime);
-  dayStart.setHours(0, 0, 0, 0);
+  const localMs = overrunTask.startTime.getTime() - (tz * 60000);
+  const localDate = new Date(localMs);
+  localDate.setUTCHours(0, 0, 0, 0);
+  const dayStart = new Date(localDate.getTime() + (tz * 60000));
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
@@ -178,15 +197,16 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
   const remainingItems: ScheduleItem[] = remaining.map((t) => ({
     title: t.title,
     type: t.type as ScheduleItem["type"],
-    startTime: t.startTime.toISOString(),
-    endTime: t.endTime.toISOString(),
+    startTime: toLocalISOString(t.startTime, tz),
+    endTime: toLocalISOString(t.endTime, tz),
     energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
     priority: t.priority,
     status: t.status as ScheduleItem["status"],
   }));
 
-  const dateStr = dayStart.toISOString().split("T")[0]!;
-  const rescheduled = await reschedule(overrunTask.title, newEndTime, remainingItems, dateStr);
+  const dateStr = localDate.toISOString().split("T")[0]!;
+  const localNewEndTime = toLocalISOString(new Date(newEndTime), tz);
+  const rescheduled = await reschedule(overrunTask.title, localNewEndTime, remainingItems, dateStr);
 
   // Persist rescheduled times
   for (const item of rescheduled) {
@@ -195,8 +215,8 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
       await prisma.task.update({
         where: { id: match.id },
         data: {
-          ...(item.startTime && { startTime: new Date(item.startTime) }),
-          ...(item.endTime && { endTime: new Date(item.endTime) }),
+          ...(item.startTime && { startTime: fromLocalISOStringToUTC(item.startTime, tz) }),
+          ...(item.endTime && { endTime: fromLocalISOStringToUTC(item.endTime, tz) }),
           status: item.status,
         },
       });
@@ -212,7 +232,7 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
  */
 export async function reorderTasks(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { taskIds, date } = req.body as { taskIds: string[]; date: string };
+  const { taskIds, date, tz = 0 } = req.body as { taskIds: string[]; date: string; tz?: number };
 
   if (!taskIds || !Array.isArray(taskIds) || !date) {
     throw new AppError(400, "taskIds array and date are required");
@@ -239,8 +259,8 @@ export async function reorderTasks(req: Request, res: Response): Promise<void> {
   const items: ScheduleItem[] = sortedTasks.map((t) => ({
     title: t.title,
     type: t.type as ScheduleItem["type"],
-    startTime: t.startTime.toISOString(),
-    endTime: t.endTime.toISOString(),
+    startTime: toLocalISOString(t.startTime, tz),
+    endTime: toLocalISOString(t.endTime, tz),
     energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
     priority: t.priority,
     status: t.status as ScheduleItem["status"],
@@ -261,8 +281,8 @@ export async function reorderTasks(req: Request, res: Response): Promise<void> {
       await prisma.task.update({
         where: { id: originalTask.id },
         data: {
-          ...(item.startTime && { startTime: new Date(item.startTime) }),
-          ...(item.endTime && { endTime: new Date(item.endTime) }),
+          ...(item.startTime && { startTime: fromLocalISOStringToUTC(item.startTime, tz) }),
+          ...(item.endTime && { endTime: fromLocalISOStringToUTC(item.endTime, tz) }),
           status: item.status,
         },
       });
@@ -278,7 +298,7 @@ export async function reorderTasks(req: Request, res: Response): Promise<void> {
  */
 export async function moveTask(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { taskId, newStartTime, date } = req.body as { taskId: string; newStartTime: string; date: string };
+  const { taskId, newStartTime, date, tz = 0 } = req.body as { taskId: string; newStartTime: string; date: string; tz?: number };
 
   if (!taskId || !newStartTime || !date) {
     throw new AppError(400, "taskId, newStartTime, and date are required");
@@ -294,8 +314,9 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
   const updatedEndTime = new Date(updatedStartTime.getTime() + originalDuration);
 
   // 2. Find all tasks for the day (excluding the moved one)
-  const dayStart = new Date(date);
-  const dayEnd = new Date(date);
+  const dayStartUTC = new Date(date);
+  const dayStart = new Date(dayStartUTC.getTime() + (tz * 60000));
+  const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
   const remainingTasks = await prisma.task.findMany({
@@ -310,8 +331,8 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
   const remainingItems: ScheduleItem[] = remainingTasks.map((t) => ({
     title: t.title,
     type: t.type as ScheduleItem["type"],
-    startTime: t.startTime.toISOString(),
-    endTime: t.endTime.toISOString(),
+    startTime: toLocalISOString(t.startTime, tz),
+    endTime: toLocalISOString(t.endTime, tz),
     energyLevel: t.energyLevel as ScheduleItem["energyLevel"],
     priority: t.priority,
     status: t.status as ScheduleItem["status"],
@@ -320,8 +341,8 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
   // 3. Ask Gemini to recalculate the schedule
   const movedItem = {
     title: taskToMove.title,
-    newStartTime: updatedStartTime.toISOString(),
-    newEndTime: updatedEndTime.toISOString()
+    newStartTime: toLocalISOString(updatedStartTime, tz),
+    newEndTime: toLocalISOString(updatedEndTime, tz)
   };
 
   const newSchedule = await moveSchedule(movedItem, remainingItems, date);
@@ -336,8 +357,8 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
       await prisma.task.update({
         where: { id: originalTask.id },
         data: {
-          ...(item.startTime && { startTime: new Date(item.startTime) }),
-          ...(item.endTime && { endTime: new Date(item.endTime) }),
+          ...(item.startTime && { startTime: fromLocalISOStringToUTC(item.startTime, tz) }),
+          ...(item.endTime && { endTime: fromLocalISOStringToUTC(item.endTime, tz) }),
           status: item.status,
         },
       });
