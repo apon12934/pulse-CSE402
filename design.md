@@ -114,6 +114,11 @@ The design system is built upon the principles of the Swiss International Style,
 
 The brand persona is authoritative, efficient, and precise. It evokes an emotional response of "controlled power." By utilizing a restricted color palette and stark contrast, the UI disappears to let the AI-driven data and execution paths take center stage. The visual language uses sharp edges and distinct modules to communicate that every element serves a logical purpose.
 
+## Strict UI Consistency Rules
+
+1. **No Native Popups**: Under no circumstances should `window.alert()`, `window.confirm()`, or `window.prompt()` be used. Always use the custom `<Modal>` component from `@pulse/ui` for user confirmations and alerts to maintain the dark-mode aesthetic and brand consistency.
+2. **Native Browser Controls**: If using native HTML elements (e.g., `<select>`, `<input type="time">`), always ensure `color-scheme: dark` and `accent-color: var(--color-accent)` are applied. If the browser forcibly overrides this with unstyleable native OS colors (like the light blue on Windows Chrome time pickers), prefer building a headless custom component using `div`s.
+
 ## Colors
 
 The palette is strictly functional, utilizing high-contrast relationships to guide the eye toward "Pulse" points—active AI processes and primary calls to action.

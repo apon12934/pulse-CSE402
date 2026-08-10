@@ -29,6 +29,7 @@ export default function TimelinePage() {
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const [deletingTask, setDeletingTask] = useState<any | null>(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   
   const { token } = useAuthStore();
 
@@ -190,11 +191,7 @@ export default function TimelinePage() {
 
           {tasks.length > 0 && (
             <button
-              onClick={async () => {
-                if (window.confirm(`Reset ${dateLabel} back to your weekly routine? Custom tasks will be lost.`)) {
-                  await clearDay(currentDate);
-                }
-              }}
+              onClick={() => setIsResetModalOpen(true)}
               className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[#666] hover:text-red-500 border border-[#262626] hover:border-red-500/50 px-3 py-2 transition-colors"
               title="Reset — restore tasks to your weekly template"
             >
@@ -447,6 +444,33 @@ export default function TimelinePage() {
               variant="ghost" 
               className="mt-2 text-[#888]"
               onClick={() => setDeletingTask(null)}
+            >
+              CANCEL
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={isResetModalOpen} onClose={() => setIsResetModalOpen(false)} title="RESET DAY">
+        <div className="flex flex-col gap-5">
+          <p className="text-sm text-gray-300 font-mono leading-relaxed">
+            Reset {dateLabel} back to your weekly routine? Any custom tasks or changes you made specifically for today will be lost.
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button 
+              variant="ghost" 
+              className="text-red-500 border border-red-500/30 hover:bg-red-500/10 hover:border-red-500"
+              onClick={async () => {
+                await clearDay(currentDate);
+                setIsResetModalOpen(false);
+              }}
+            >
+              YES, RESET TODAY
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="mt-2 text-[#888]"
+              onClick={() => setIsResetModalOpen(false)}
             >
               CANCEL
             </Button>
