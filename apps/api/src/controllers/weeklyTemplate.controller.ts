@@ -10,30 +10,35 @@ const WEEKS_TO_GENERATE = 4;
 function generateInstancesForTemplate(
   template: { id: string; userId: string; dayOfWeek: number; startHour: number; startMinute: number; endHour: number; endMinute: number; title: string; type: string; energyLevel: string; priority: number },
   weeksAhead: number,
+  timezoneOffset: number,
+  referenceDateStr: string
 ): Array<{ userId: string; title: string; type: string; energyLevel: string; priority: number; startTime: Date; endTime: Date; status: string; templateTaskId: string }> {
   const instances = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  
+  // Parse the user's local reference date as UTC to avoid server timezone bias
+  const [year, month, day] = referenceDateStr.split('-').map(Number);
+  const todayLocal = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
   for (let w = 0; w < weeksAhead; w++) {
     const weekOffset = w * 7;
     
-    // Find the next occurrence of this dayOfWeek from today + weekOffset
-    const base = new Date(today);
-    base.setDate(today.getDate() + weekOffset);
+    // Find the next occurrence of this dayOfWeek from todayLocal + weekOffset
+    const base = new Date(todayLocal);
+    base.setUTCDate(todayLocal.getUTCDate() + weekOffset);
     
-    const diff = (template.dayOfWeek - base.getDay() + 7) % 7;
+    const diff = (template.dayOfWeek - base.getUTCDay() + 7) % 7;
     const targetDate = new Date(base);
-    targetDate.setDate(base.getDate() + diff);
+    targetDate.setUTCDate(base.getUTCDate() + diff);
 
     // Skip dates in the past
-    if (targetDate < today && w === 0) continue;
+    if (targetDate < todayLocal && w === 0) continue;
 
     const startTime = new Date(targetDate);
-    startTime.setHours(template.startHour, template.startMinute, 0, 0);
+    // Apply user's timezone offset to calculate the correct UTC time for this local hour
+    startTime.setUTCHours(template.startHour, template.startMinute + timezoneOffset, 0, 0);
 
     const endTime = new Date(targetDate);
-    endTime.setHours(template.endHour, template.endMinute, 0, 0);
+    endTime.setUTCHours(template.endHour, template.endMinute + timezoneOffset, 0, 0);
 
     instances.push({
       userId: template.userId,
@@ -73,7 +78,7 @@ export async function getWeeklyTemplate(req: Request, res: Response): Promise<vo
  */
 export async function generateWeeklyTemplate(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { tasks } = req.body as {
+  const { tasks, timezoneOffset, referenceDate } = req.body as {
     tasks: Array<{
       title: string;
       type: string;
@@ -85,6 +90,8 @@ export async function generateWeeklyTemplate(req: Request, res: Response): Promi
       endHour: number;
       endMinute: number;
     }>;
+    timezoneOffset: number;
+    referenceDate: string;
   };
 
   if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
@@ -126,7 +133,7 @@ export async function generateWeeklyTemplate(req: Request, res: Response): Promi
   // 4. Generate Task instances for next N weeks
   let totalInstances = 0;
   for (const template of createdTemplates) {
-    const instances = generateInstancesForTemplate(template, WEEKS_TO_GENERATE);
+    const instances = generateInstancesForTemplate(template, WEEKS_TO_GENERATE, timezoneOffset || 0, referenceDate || new Date().toISOString().split('T')[0]);
     if (instances.length > 0) {
       await prisma.task.createMany({ data: instances as any });
       totalInstances += instances.length;

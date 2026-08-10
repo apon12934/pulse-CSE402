@@ -115,7 +115,7 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
     throw new AppError(404, "Task not found");
   }
 
-  const { title, description, type, status, energyLevel, priority, startTime, endTime, taskBlockId, applyGlobally } =
+  const { title, description, type, status, energyLevel, priority, startTime, endTime, taskBlockId, applyGlobally, localStartHour, localStartMinute, localEndHour, localEndMinute, timezoneOffset } =
     req.body as {
       title?: string;
       description?: string | null;
@@ -127,6 +127,11 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
       endTime?: string;
       taskBlockId?: string | null;
       applyGlobally?: boolean;
+      localStartHour?: number;
+      localStartMinute?: number;
+      localEndHour?: number;
+      localEndMinute?: number;
+      timezoneOffset?: number;
     };
 
   // If switching task blocks, verify new block belongs to user
@@ -155,10 +160,10 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
   });
 
   if (applyGlobally && existing.templateTaskId) {
-    const startHour = startTime ? new Date(startTime).getHours() : undefined;
-    const startMinute = startTime ? new Date(startTime).getMinutes() : undefined;
-    const endHour = endTime ? new Date(endTime).getHours() : undefined;
-    const endMinute = endTime ? new Date(endTime).getMinutes() : undefined;
+    const startHour = localStartHour ?? (startTime ? new Date(startTime).getHours() : undefined);
+    const startMinute = localStartMinute ?? (startTime ? new Date(startTime).getMinutes() : undefined);
+    const endHour = localEndHour ?? (endTime ? new Date(endTime).getHours() : undefined);
+    const endMinute = localEndMinute ?? (endTime ? new Date(endTime).getMinutes() : undefined);
 
     await prisma.templateTask.update({
       where: { id: existing.templateTaskId },
@@ -190,10 +195,22 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
 
     for (const fTask of futureTasks) {
       const newStart = new Date(fTask.startTime);
-      if (startHour !== undefined) newStart.setHours(startHour, startMinute ?? 0, 0, 0);
+      if (startHour !== undefined) {
+        if (timezoneOffset !== undefined) {
+          newStart.setUTCHours(startHour, (startMinute ?? 0) + timezoneOffset, 0, 0);
+        } else {
+          newStart.setHours(startHour, startMinute ?? 0, 0, 0);
+        }
+      }
       
       const newEnd = new Date(fTask.endTime);
-      if (endHour !== undefined) newEnd.setHours(endHour, endMinute ?? 0, 0, 0);
+      if (endHour !== undefined) {
+        if (timezoneOffset !== undefined) {
+          newEnd.setUTCHours(endHour, (endMinute ?? 0) + timezoneOffset, 0, 0);
+        } else {
+          newEnd.setHours(endHour, endMinute ?? 0, 0, 0);
+        }
+      }
 
       await prisma.task.update({
         where: { id: fTask.id },

@@ -106,7 +106,11 @@ export function AiChatPanel() {
       }
 
       if (response.status === 'weekly_approved' && finalWeeklyTasks.length > 0) {
-        await apiPost('/api/weekly-template/generate', { tasks: finalWeeklyTasks });
+        await apiPost('/api/weekly-template/generate', { 
+          tasks: finalWeeklyTasks,
+          timezoneOffset: new Date().getTimezoneOffset(),
+          referenceDate: dateStr
+        });
         await fetchTasks(today);
       }
 

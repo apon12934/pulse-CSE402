@@ -66,6 +66,11 @@ export function EditTaskModal({ task, isOpen, onClose, currentDate }: EditTaskMo
         priority: Number(form.priority),
         startTime: start.toISOString(),
         endTime: end.toISOString(),
+        localStartHour: sh ?? 9,
+        localStartMinute: sm ?? 0,
+        localEndHour: eh ?? 10,
+        localEndMinute: em ?? 0,
+        timezoneOffset: new Date().getTimezoneOffset(),
       }, currentDate, applyGlobally);
       onClose();
     } finally {
