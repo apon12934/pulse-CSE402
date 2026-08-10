@@ -41,11 +41,38 @@ export const createTaskSchema = z.object({
   localEndMinute: z.number().int().min(0).max(59).optional(),
   timezoneOffset: z.number().optional(),
   referenceDate: z.string().optional(),
+}).refine((data) => new Date(data.endTime) > new Date(data.startTime), {
+  message: "endTime must be strictly after startTime",
+  path: ["endTime"],
 });
 
-export const updateTaskSchema = createTaskSchema.extend({
+export const updateTaskSchema = z.object({
+  title: z.string().min(1, "Title is required").max(255),
+  description: z.string().max(2000).nullable().optional(),
+  type: z.enum(["Anchor", "Fluid"]),
+  energyLevel: z.enum(["High", "Medium", "Low"]).optional().default("Medium"),
+  priority: z.number().int().min(0).max(10).optional().default(0),
+  startTime: z.string().datetime({ message: "startTime must be ISO 8601" }),
+  endTime: z.string().datetime({ message: "endTime must be ISO 8601" }),
+  status: z.enum(["Upcoming", "Running", "Completed", "Overdue"]).optional().default("Upcoming"),
+  taskBlockId: z.string().nullable().optional(),
+  recurringDays: z.array(z.number().int().min(0).max(6)).optional(),
+  localStartHour: z.number().int().min(0).max(23).optional(),
+  localStartMinute: z.number().int().min(0).max(59).optional(),
+  localEndHour: z.number().int().min(0).max(23).optional(),
+  localEndMinute: z.number().int().min(0).max(59).optional(),
+  timezoneOffset: z.number().optional(),
+  referenceDate: z.string().optional(),
   applyGlobally: z.boolean().optional(),
-}).partial();
+}).partial().refine((data) => {
+  if (data.startTime && data.endTime) {
+    return new Date(data.endTime) > new Date(data.startTime);
+  }
+  return true;
+}, {
+  message: "endTime must be strictly after startTime",
+  path: ["endTime"],
+});
 
 export const taskIdParam = z.object({
   id: z.string().min(1),
