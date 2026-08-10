@@ -43,7 +43,9 @@ export const createTaskSchema = z.object({
   referenceDate: z.string().optional(),
 });
 
-export const updateTaskSchema = createTaskSchema.partial();
+export const updateTaskSchema = createTaskSchema.extend({
+  applyGlobally: z.boolean().optional(),
+}).partial();
 
 export const taskIdParam = z.object({
   id: z.string().min(1),
