@@ -542,7 +542,7 @@ export async function resetDay(req: Request, res: Response): Promise<void> {
   });
 
   // 2. Fetch template tasks for this day of the week
-  const dayOfWeek = dayStart.getDay();
+  const dayOfWeek = dayStartUTC.getUTCDay();
   const templates = await prisma.templateTask.findMany({
     where: { userId, dayOfWeek },
   });
@@ -550,11 +550,11 @@ export async function resetDay(req: Request, res: Response): Promise<void> {
   // 3. If templates exist, restore them for this specific date
   if (templates.length > 0) {
     const instancesToCreate = templates.map((template) => {
-      const startTime = new Date(dayStart);
-      startTime.setHours(template.startHour, template.startMinute, 0, 0);
+      const startTime = new Date(dayStartUTC);
+      startTime.setUTCHours(template.startHour, template.startMinute + tz, 0, 0);
 
-      const endTime = new Date(dayStart);
-      endTime.setHours(template.endHour, template.endMinute, 0, 0);
+      const endTime = new Date(dayStartUTC);
+      endTime.setUTCHours(template.endHour, template.endMinute + tz, 0, 0);
 
       return {
         userId,
