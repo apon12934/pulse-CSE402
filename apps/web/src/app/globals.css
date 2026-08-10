@@ -1,4 +1,5 @@
 @import '@pulse/ui/styles';
+@source "../../../../packages/ui/src";
 
 /* Global Custom Scrollbar */
 html {

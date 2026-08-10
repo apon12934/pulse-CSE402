@@ -15,6 +15,7 @@
 
 /* ─── Tailwind v4 Theme ────────────────────────── */
 @import "tailwindcss";
+@source "../components";
 
 @theme {
   /* ── Colors: Surfaces (Z-axis Tonal Stacking) ── */
