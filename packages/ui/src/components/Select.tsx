@@ -10,7 +10,7 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
 }
 
 export const Select = React.forwardRef<HTMLDivElement, SelectProps>(
-  ({ label, error, className, children, value, onChange, ...props }, ref) => {
+  ({ label, error, className, children, value, onChange }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -29,8 +29,8 @@ export const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     const options = React.Children.toArray(children)
       .filter((child): child is React.ReactElement => React.isValidElement(child) && child.type === 'option')
       .map(child => ({
-        value: child.props.value,
-        label: child.props.children
+        value: (child as React.ReactElement).props.value,
+        label: (child as React.ReactElement).props.children
       }));
 
     const selectedOption = options.find(opt => opt.value === value);
