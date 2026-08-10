@@ -146,6 +146,7 @@ export function AiChatPanel() {
       }]);
     } finally {
       setIsProcessing(false);
+      isProcessingRef.current = false;
     }
   };
 
@@ -269,7 +270,7 @@ export function AiChatPanel() {
                     </div>
                   )}
                 </div>
-                <span className="font-mono text-[10px] text-[#FFFF00]">SYSTEM · {msg.timestamp}</span>
+                <span className="font-mono text-[10px] text-[#FFFF00]">GEMINI · {msg.timestamp}</span>
               </>
             )}
           </div>
