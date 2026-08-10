@@ -15,7 +15,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!token) return;
+    
+    // Initial fetch
     fetchTasks(new Date());
+
+    // Background polling every 30 seconds to keep clients in sync
+    const interval = setInterval(() => {
+      fetchTasks(new Date());
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [token, fetchTasks]);
 
   const [currentTime, setCurrentTime] = useState(new Date());

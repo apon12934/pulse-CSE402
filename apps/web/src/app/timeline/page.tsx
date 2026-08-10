@@ -34,7 +34,15 @@ export default function TimelinePage() {
   const { token } = useAuthStore();
 
   useEffect(() => {
+    // Initial fetch
     fetchTasks(currentDate);
+
+    // Background polling every 30 seconds
+    const interval = setInterval(() => {
+      fetchTasks(currentDate);
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [currentDate, token, fetchTasks]);
 
   useEffect(() => {
