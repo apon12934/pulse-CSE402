@@ -34,7 +34,9 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     } catch {
       // Ignored
     }
-    throw new Error(errorMsg);
+    const err = new Error(errorMsg) as any;
+    err.status = response.status;
+    throw err;
   }
   
   if (response.status === 204) {

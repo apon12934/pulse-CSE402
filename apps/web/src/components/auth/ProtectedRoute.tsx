@@ -27,11 +27,15 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
           if (isMounted) {
             hydrate(data.user);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to verify token:', error);
           if (isMounted) {
-            logout();
-            router.push('/login');
+            // Only force logout if the token is explicitly rejected (401 Unauthorized)
+            // If it's a 500 error or network failure, keep the token so the user stays logged in
+            if (error.status === 401) {
+              logout();
+              router.push('/login');
+            }
           }
         }
       }
