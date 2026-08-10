@@ -16,7 +16,10 @@ function generateInstancesForTemplate(
   const instances = [];
   
   // Parse the user's local reference date as UTC to avoid server timezone bias
-  const [year, month, day] = referenceDateStr.split('-').map(Number);
+  const parts = referenceDateStr.split('-').map(Number);
+  const year = parts[0] ?? new Date().getFullYear();
+  const month = parts[1] ?? (new Date().getMonth() + 1);
+  const day = parts[2] ?? new Date().getDate();
   const todayLocal = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
   for (let w = 0; w < weeksAhead; w++) {
@@ -133,7 +136,8 @@ export async function generateWeeklyTemplate(req: Request, res: Response): Promi
   // 4. Generate Task instances for next N weeks
   let totalInstances = 0;
   for (const template of createdTemplates) {
-    const instances = generateInstancesForTemplate(template, WEEKS_TO_GENERATE, timezoneOffset || 0, referenceDate || new Date().toISOString().split('T')[0]);
+    const defaultRef = new Date().toISOString().split('T')[0]!;
+    const instances = generateInstancesForTemplate(template, WEEKS_TO_GENERATE, timezoneOffset || 0, referenceDate || defaultRef);
     if (instances.length > 0) {
       await prisma.task.createMany({ data: instances as any });
       totalInstances += instances.length;
@@ -181,7 +185,8 @@ export async function updateTemplateTask(req: Request, res: Response): Promise<v
   });
 
   // Regenerate instances with new values
-  const instances = generateInstancesForTemplate(updated, WEEKS_TO_GENERATE);
+  const defaultRef = new Date().toISOString().split('T')[0]!;
+  const instances = generateInstancesForTemplate(updated, WEEKS_TO_GENERATE, 0, defaultRef);
   if (instances.length > 0) {
     await prisma.task.createMany({ data: instances as any });
   }
