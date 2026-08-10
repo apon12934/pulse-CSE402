@@ -104,7 +104,10 @@ export async function generateDailySchedule(req: Request, res: Response): Promis
   const tasks = await prisma.task.findMany({
     where: {
       userId,
-      startTime: { gte: dayStart, lt: dayEnd },
+      AND: [
+        { startTime: { lt: dayEnd } },
+        { endTime: { gt: dayStart } }
+      ],
     },
     orderBy: { startTime: "asc" },
   });
@@ -326,7 +329,10 @@ export async function moveTask(req: Request, res: Response): Promise<void> {
     where: {
       userId,
       id: { not: taskId },
-      startTime: { gte: dayStart, lt: dayEnd },
+      AND: [
+        { startTime: { lt: dayEnd } },
+        { endTime: { gt: dayStart } }
+      ],
     },
     orderBy: { startTime: "asc" },
   });
@@ -528,7 +534,10 @@ export async function resetDay(req: Request, res: Response): Promise<void> {
   await prisma.task.deleteMany({
     where: {
       userId,
-      startTime: { gte: dayStart, lt: dayEnd },
+      AND: [
+        { startTime: { lt: dayEnd } },
+        { endTime: { gt: dayStart } }
+      ],
     },
   });
 

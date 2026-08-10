@@ -338,7 +338,10 @@ export async function deleteAllTasksForDate(req: Request, res: Response): Promis
   const { count } = await prisma.task.deleteMany({
     where: {
       userId,
-      startTime: { gte: dayStart, lt: dayEnd },
+      AND: [
+        { startTime: { lt: dayEnd } },
+        { endTime: { gt: dayStart } }
+      ],
     },
   });
 
