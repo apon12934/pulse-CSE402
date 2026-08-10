@@ -115,7 +115,7 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
     throw new AppError(404, "Task not found");
   }
 
-  const { title, description, type, status, energyLevel, priority, startTime, endTime, taskBlockId } =
+  const { title, description, type, status, energyLevel, priority, startTime, endTime, taskBlockId, applyGlobally } =
     req.body as {
       title?: string;
       description?: string | null;
@@ -126,6 +126,7 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
       startTime?: string;
       endTime?: string;
       taskBlockId?: string | null;
+      applyGlobally?: boolean;
     };
 
   // If switching task blocks, verify new block belongs to user
@@ -152,6 +153,61 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
       ...(taskBlockId !== undefined && { taskBlockId }),
     },
   });
+
+  if (applyGlobally && existing.templateTaskId) {
+    const startHour = startTime ? new Date(startTime).getHours() : undefined;
+    const startMinute = startTime ? new Date(startTime).getMinutes() : undefined;
+    const endHour = endTime ? new Date(endTime).getHours() : undefined;
+    const endMinute = endTime ? new Date(endTime).getMinutes() : undefined;
+
+    await prisma.templateTask.update({
+      where: { id: existing.templateTaskId },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(type !== undefined && { type: type as any }),
+        ...(energyLevel !== undefined && { energyLevel: energyLevel as any }),
+        ...(priority !== undefined && { priority }),
+        ...(startHour !== undefined && { startHour }),
+        ...(startMinute !== undefined && { startMinute }),
+        ...(endHour !== undefined && { endHour }),
+        ...(endMinute !== undefined && { endMinute }),
+      },
+    });
+
+    // Update all future tasks belonging to this template
+    // We only update tasks that haven't happened yet
+    const now = new Date();
+    
+    // To properly shift times, we need to iterate over future tasks because they fall on different dates
+    const futureTasks = await prisma.task.findMany({
+      where: {
+        templateTaskId: existing.templateTaskId,
+        userId,
+        startTime: { gt: now },
+        status: { notIn: ["Completed"] }, // Don't mess with completed tasks even if they are somehow in the future
+      },
+    });
+
+    for (const fTask of futureTasks) {
+      const newStart = new Date(fTask.startTime);
+      if (startHour !== undefined) newStart.setHours(startHour, startMinute ?? 0, 0, 0);
+      
+      const newEnd = new Date(fTask.endTime);
+      if (endHour !== undefined) newEnd.setHours(endHour, endMinute ?? 0, 0, 0);
+
+      await prisma.task.update({
+        where: { id: fTask.id },
+        data: {
+          ...(title !== undefined && { title }),
+          ...(type !== undefined && { type }),
+          ...(energyLevel !== undefined && { energyLevel }),
+          ...(priority !== undefined && { priority }),
+          ...(startTime !== undefined && { startTime: newStart }),
+          ...(endTime !== undefined && { endTime: newEnd }),
+        }
+      });
+    }
+  }
 
   res.json({ task });
 }

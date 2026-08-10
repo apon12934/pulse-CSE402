@@ -29,6 +29,7 @@ export function EditTaskModal({ task, isOpen, onClose, currentDate }: EditTaskMo
     endHour: '10:00',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [applyGlobally, setApplyGlobally] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -40,6 +41,7 @@ export function EditTaskModal({ task, isOpen, onClose, currentDate }: EditTaskMo
         startHour: toLocalTimeInput(task.startTime),
         endHour: toLocalTimeInput(task.endTime),
       });
+      setApplyGlobally(false);
     }
   }, [task]);
 
@@ -64,7 +66,7 @@ export function EditTaskModal({ task, isOpen, onClose, currentDate }: EditTaskMo
         priority: Number(form.priority),
         startTime: start.toISOString(),
         endTime: end.toISOString(),
-      }, currentDate);
+      }, currentDate, applyGlobally);
       onClose();
     } finally {
       setIsSaving(false);
@@ -124,6 +126,27 @@ export function EditTaskModal({ task, isOpen, onClose, currentDate }: EditTaskMo
             className="w-full h-1.5 bg-[#262626] rounded-none appearance-none cursor-pointer accent-[#FFFF00] hover:accent-white transition-colors"
           />
         </div>
+        
+        {task?.templateTaskId && (
+          <div className="flex items-center gap-3 mt-2 bg-[#1A1A1A] p-3 border border-[#262626]">
+            <input
+              type="checkbox"
+              id="applyGlobally"
+              checked={applyGlobally}
+              onChange={(e) => setApplyGlobally(e.target.checked)}
+              className="w-4 h-4 accent-[#FFFF00] bg-[#262626] border-[#404040] rounded-sm cursor-pointer"
+            />
+            <div className="flex flex-col">
+              <label htmlFor="applyGlobally" className="text-xs font-bold text-white cursor-pointer">
+                Apply to all future weeks
+              </label>
+              <span className="text-[10px] text-gray-500 font-mono">
+                Updates this task and all upcoming instances in your schedule
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-3 mt-2">
           <Button variant="ghost" type="button" className="flex-1" onClick={onClose}>
             CANCEL

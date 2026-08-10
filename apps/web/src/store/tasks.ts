@@ -9,7 +9,7 @@ interface TaskStore {
   fetchTasks: (date: Date) => Promise<void>;
   updateTasks: (newTasks: any[]) => void;
   deleteTask: (taskId: string) => Promise<void>;
-  updateTask: (taskId: string, data: Record<string, any>, date: Date) => Promise<void>;
+  updateTask: (id: string, updates: Record<string, any>, localDate?: Date, applyGlobally?: boolean) => Promise<void>;
   clearDay: (date: Date) => Promise<void>;
 }
 
@@ -40,12 +40,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ tasks: newTasks });
   },
 
-  updateTask: async (taskId: string, data: Record<string, any>, date: Date) => {
+  updateTask: async (id, updates, localDate, applyGlobally) => {
     try {
-      const res = await apiPatch<{ task: any }>(`/api/tasks/${taskId}`, data);
+      const res = await apiPatch<{ task: any }>(`/api/tasks/${id}`, { ...updates, applyGlobally });
       // Optimistically update the local store
       set((state) => ({
-        tasks: state.tasks.map((t) => t.id === taskId ? { ...t, ...res.task } : t)
+        tasks: state.tasks.map((t) => t.id === id ? { ...t, ...res.task } : t)
       }));
     } catch (err: any) {
       console.error('Failed to update task:', err);
