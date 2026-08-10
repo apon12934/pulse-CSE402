@@ -109,6 +109,7 @@ export async function generateWeeklyTemplate(req: Request, res: Response): Promi
   await prisma.task.deleteMany({
     where: {
       userId,
+      templateTaskId: { not: null },
       startTime: { gte: now },
     },
   });
