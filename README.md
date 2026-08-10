@@ -245,7 +245,7 @@ npm run lint         # ESLint both apps
   <br/>
   <img src="https://raw.githubusercontent.com/apon12934/pulse/main/apps/web/public/logo.svg" alt="Pulse" width="140" />
   <br/><br/>
-  <sub>Built by <a href="https://github.com/apon12934">Apon</a></sub>
+  <sub>Built by Apon, Anwar, Nur, and Monayem</sub>
   <br/>
   <sub><em>Because your day should adapt to you, not the other way around.</em></sub>
   <br/><br/>
