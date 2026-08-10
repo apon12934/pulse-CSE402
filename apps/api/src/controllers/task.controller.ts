@@ -126,9 +126,13 @@ export async function listTasks(req: Request, res: Response): Promise<void> {
 
   // Filter tasks by a specific date (start of day to end of day)
   if (date) {
-    const dayStart = new Date(date);
-    const dayEnd = new Date(date);
+    const tz = req.query["tz"] ? parseInt(req.query["tz"] as string) : 0;
+    const dayStartUTC = new Date(date);
+    const dayStart = new Date(dayStartUTC.getTime() + (tz * 60000));
+    
+    const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayEnd.getDate() + 1);
+    
     where["startTime"] = { gte: dayStart, lt: dayEnd };
   }
 

@@ -1,14 +1,17 @@
-const d = new Date('2026-08-16T19:00:00.000Z'); // Aug 17, 1:00 AM local
-const timezoneOffset = -360;
-const startHour = 9;
-const startMinute = 0;
+import { prisma } from "./src/utils/prisma.js";
 
-const localMs = d.getTime() - (timezoneOffset * 60000);
-const localDate = new Date(localMs);
-localDate.setUTCHours(startHour, startMinute, 0, 0);
+async function run() {
+  const tasks = await prisma.task.findMany({
+    where: {
+      title: { contains: "Wake up" }
+    },
+    orderBy: { startTime: 'asc' }
+  });
+  console.log(tasks.map(t => ({
+    id: t.id,
+    start: t.startTime.toISOString(),
+    startLocal: t.startTime.toLocaleString("en-US", { timeZone: "Asia/Dhaka" })
+  })));
+}
 
-const utcMs = localDate.getTime() + (timezoneOffset * 60000);
-const newStart = new Date(utcMs);
-
-console.log("Old UTC:", d.toISOString());
-console.log("New UTC:", newStart.toISOString());
+run();

@@ -28,8 +28,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-      const dateStr = date.toISOString().split('T')[0];
-      const res = await apiGet<{ tasks: any[] }>(`/api/tasks?date=${dateStr}`);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const tz = date.getTimezoneOffset();
+      const res = await apiGet<{ tasks: any[] }>(`/api/tasks?date=${dateStr}&tz=${tz}`);
       set({ tasks: res.tasks || [], isLoading: false });
     } catch (err: any) {
       console.error('Failed to fetch tasks:', err);
@@ -90,10 +94,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   clearDay: async (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    const tz = date.getTimezoneOffset();
     try {
       const { apiFetch } = await import('@/lib/api');
-      await apiFetch(`/api/schedule/reset-day?date=${dateStr}`, { method: 'DELETE' });
+      await apiFetch(`/api/schedule/reset-day?date=${dateStr}&tz=${tz}`, { method: 'DELETE' });
       get().fetchTasks(date);
     } catch (err: any) {
       console.error('Failed to reset day:', err);

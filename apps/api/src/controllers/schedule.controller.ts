@@ -491,11 +491,13 @@ export async function chatSchedule(req: Request, res: Response): Promise<void> {
 export async function resetDay(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
   const date = typeof req.query["date"] === "string" ? req.query["date"] : undefined;
+  const tz = req.query["tz"] ? parseInt(req.query["tz"] as string) : 0;
 
   if (!date) throw new AppError(400, "date query param is required (YYYY-MM-DD)");
 
-  const dayStart = new Date(date);
-  const dayEnd = new Date(date);
+  const dayStartUTC = new Date(date);
+  const dayStart = new Date(dayStartUTC.getTime() + (tz * 60000));
+  const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
   // 1. Delete all current tasks for that date
