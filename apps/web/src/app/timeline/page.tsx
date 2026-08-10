@@ -50,6 +50,8 @@ export default function TimelinePage() {
     startHour: '09:00',
     durationMinutes: 60,
   });
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringDays, setRecurringDays] = useState<number[]>([new Date().getDay()]);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,16 +65,30 @@ export default function TimelinePage() {
     const end = new Date(start.getTime() + newTask.durationMinutes * 60000);
 
     try {
-      await apiPost('/api/tasks', {
+      const payload: any = {
         title: newTask.title,
         type: newTask.type,
         energyLevel: newTask.energyLevel,
         priority: Number(newTask.priority),
         startTime: start.toISOString(),
         endTime: end.toISOString()
-      });
+      };
+
+      if (isRecurring && recurringDays.length > 0) {
+        payload.recurringDays = recurringDays;
+        payload.localStartHour = h ?? 9;
+        payload.localStartMinute = m ?? 0;
+        payload.localEndHour = end.getHours();
+        payload.localEndMinute = end.getMinutes();
+        payload.timezoneOffset = new Date().getTimezoneOffset();
+        payload.referenceDate = currentDate.toISOString().split('T')[0];
+      }
+
+      await apiPost('/api/tasks', payload);
       setIsCreateModalOpen(false);
-      setNewTask({ title: '', type: 'Anchor', energyLevel: 'Medium', priority: 1, startHour: '09:00', durationMinutes: 60 });
+      setNewTask({ title: '', type: 'Fluid', energyLevel: 'Medium', priority: 1, startHour: '09:00', durationMinutes: 60 });
+      setIsRecurring(false);
+      setRecurringDays([currentDate.getDay()]);
       await fetchTasks(currentDate);
     } catch (err: any) {
       console.error('Failed to create task:', err);
@@ -250,6 +266,56 @@ export default function TimelinePage() {
             onChange={(e) => setNewTask({ ...newTask, priority: parseInt(e.target.value) })}
             required
           />
+
+          <div className="flex flex-col gap-3 mt-2 bg-[#1A1A1A] p-4 border border-[#262626]">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="isRecurring"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="w-4 h-4 accent-[#FFFF00] bg-[#262626] border-[#404040] rounded-sm cursor-pointer"
+              />
+              <div className="flex flex-col">
+                <label htmlFor="isRecurring" className="text-xs font-bold text-white cursor-pointer">
+                  Make this a recurring weekly task
+                </label>
+                <span className="text-[10px] text-gray-500 font-mono mt-0.5">
+                  Adds this task to your base weekly routine
+                </span>
+              </div>
+            </div>
+            
+            {isRecurring && (
+              <div className="flex gap-2 mt-2">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => {
+                  const isSelected = recurringDays.includes(i);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          setRecurringDays(prev => prev.filter(d => d !== i));
+                        } else {
+                          setRecurringDays(prev => [...prev, i].sort());
+                        }
+                      }}
+                      className={cn(
+                        "w-8 h-8 flex items-center justify-center font-mono text-xs border transition-colors",
+                        isSelected 
+                          ? "bg-[#FFFF00] text-black border-[#FFFF00] font-bold" 
+                          : "bg-[#262626] text-[#888] border-[#333] hover:border-[#666] hover:text-white"
+                      )}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <Button variant="primary" type="submit" className="w-full mt-2">
             LOCK INTO TIMELINE
           </Button>

@@ -2,13 +2,18 @@ import type { Request, Response } from "express";
 import { prisma } from "../utils/prisma.js";
 import { AppError } from "../utils/errors.js";
 
+import { generateInstancesForTemplate } from "./weeklyTemplate.controller.js";
+
 /**
  * POST /api/tasks
  * Create a new task for the authenticated user.
  */
 export async function createTask(req: Request, res: Response): Promise<void> {
   const userId = req.userId!;
-  const { title, description, type, energyLevel, priority, startTime, endTime, taskBlockId } =
+  const { 
+    title, description, type, energyLevel, priority, startTime, endTime, taskBlockId,
+    recurringDays, localStartHour, localStartMinute, localEndHour, localEndMinute, timezoneOffset, referenceDate
+  } =
     req.body as {
       title: string;
       description?: string | null;
@@ -18,6 +23,13 @@ export async function createTask(req: Request, res: Response): Promise<void> {
       startTime: string;
       endTime: string;
       taskBlockId?: string | null;
+      recurringDays?: number[];
+      localStartHour?: number;
+      localStartMinute?: number;
+      localEndHour?: number;
+      localEndMinute?: number;
+      timezoneOffset?: number;
+      referenceDate?: string;
     };
 
   // If a taskBlockId is provided, verify it belongs to this user
@@ -28,6 +40,54 @@ export async function createTask(req: Request, res: Response): Promise<void> {
     if (!block) {
       throw new AppError(404, "Task block not found or does not belong to you");
     }
+  }
+
+  // Handle Recurring Tasks
+  if (recurringDays && recurringDays.length > 0) {
+    if (
+      localStartHour === undefined || localStartMinute === undefined ||
+      localEndHour === undefined || localEndMinute === undefined ||
+      timezoneOffset === undefined || referenceDate === undefined
+    ) {
+      throw new AppError(400, "Missing required template fields for recurring task");
+    }
+
+    const createdTemplates = await Promise.all(
+      recurringDays.map((dayOfWeek) =>
+        prisma.templateTask.create({
+          data: {
+            userId,
+            title,
+            type,
+            energyLevel: energyLevel ?? "Medium",
+            priority: priority ?? 0,
+            dayOfWeek,
+            startHour: localStartHour,
+            startMinute: localStartMinute,
+            endHour: localEndHour,
+            endMinute: localEndMinute,
+          },
+        })
+      )
+    );
+
+    let allInstances: any[] = [];
+    const WEEKS_TO_GENERATE = 4;
+    for (const template of createdTemplates) {
+      const instances = generateInstancesForTemplate(template, WEEKS_TO_GENERATE, timezoneOffset, referenceDate);
+      allInstances = allInstances.concat(instances);
+    }
+
+    if (allInstances.length > 0) {
+      await prisma.task.createMany({ data: allInstances });
+    }
+
+    res.status(201).json({ 
+      message: "Recurring tasks created successfully", 
+      templates: createdTemplates.length, 
+      instances: allInstances.length 
+    });
+    return;
   }
 
   const task = await prisma.task.create({

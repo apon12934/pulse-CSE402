@@ -7,7 +7,7 @@ const WEEKS_TO_GENERATE = 4;
 /**
  * Build Task instances for a template task across N weeks starting from today.
  */
-function generateInstancesForTemplate(
+export function generateInstancesForTemplate(
   template: { id: string; userId: string; dayOfWeek: number; startHour: number; startMinute: number; endHour: number; endMinute: number; title: string; type: string; energyLevel: string; priority: number },
   weeksAhead: number,
   timezoneOffset: number,

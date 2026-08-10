@@ -34,6 +34,13 @@ export const createTaskSchema = z.object({
   endTime: z.string().datetime({ message: "endTime must be ISO 8601" }),
   status: z.enum(["Upcoming", "Running", "Completed", "Overdue"]).optional().default("Upcoming"),
   taskBlockId: z.string().nullable().optional(),
+  recurringDays: z.array(z.number().int().min(0).max(6)).optional(),
+  localStartHour: z.number().int().min(0).max(23).optional(),
+  localStartMinute: z.number().int().min(0).max(59).optional(),
+  localEndHour: z.number().int().min(0).max(23).optional(),
+  localEndMinute: z.number().int().min(0).max(59).optional(),
+  timezoneOffset: z.number().optional(),
+  referenceDate: z.string().optional(),
 });
 
 export const updateTaskSchema = createTaskSchema.partial();
