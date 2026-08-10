@@ -209,18 +209,21 @@ export async function dominoReschedule(req: Request, res: Response): Promise<voi
   const rescheduled = await reschedule(overrunTask.title, localNewEndTime, remainingItems, dateStr);
 
   // Persist rescheduled times
-  for (const item of rescheduled) {
-    const match = remaining.find((t) => t.title === item.title);
-    if (match) {
-      await prisma.task.update({
-        where: { id: match.id },
-        data: {
-          ...(item.startTime && { startTime: fromLocalISOStringToUTC(item.startTime, tz) }),
-          ...(item.endTime && { endTime: fromLocalISOStringToUTC(item.endTime, tz) }),
-          status: item.status,
-        },
-      });
-    }
+  const updatePromises = rescheduled.map(item => {
+    const match = remaining.find(t => t.title === item.title);
+    if (!match) return null;
+    return prisma.task.update({
+      where: { id: match.id },
+      data: {
+        ...(item.startTime && { startTime: fromLocalISOStringToUTC(item.startTime, tz) }),
+        ...(item.endTime && { endTime: fromLocalISOStringToUTC(item.endTime, tz) }),
+        status: item.status,
+      },
+    });
+  }).filter((p): p is NonNullable<typeof p> => p !== null);
+
+  if (updatePromises.length > 0) {
+    await prisma.$transaction(updatePromises);
   }
 
   res.json({ rescheduled, tasksAffected: rescheduled.length });

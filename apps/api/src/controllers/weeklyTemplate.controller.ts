@@ -101,53 +101,58 @@ export async function generateWeeklyTemplate(req: Request, res: Response): Promi
     throw new AppError(400, "tasks array is required");
   }
 
-  // 1. Delete existing template
-  await prisma.templateTask.deleteMany({ where: { userId } });
-
-  // 2. Delete all future tasks to provide a clean slate for the new weekly routine
   const now = new Date();
-  await prisma.task.deleteMany({
-    where: {
-      userId,
-      templateTaskId: { not: null },
-      startTime: { gte: now },
-    },
+  
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Delete existing template
+    await tx.templateTask.deleteMany({ where: { userId } });
+
+    // 2. Delete all future template tasks to provide a clean slate
+    await tx.task.deleteMany({
+      where: {
+        userId,
+        templateTaskId: { not: null },
+        startTime: { gte: now },
+      },
+    });
+
+    // 3. Create new template tasks
+    const createdTemplates = await Promise.all(
+      tasks.map((t) =>
+        tx.templateTask.create({
+          data: {
+            userId,
+            title: t.title,
+            type: t.type as "Anchor" | "Fluid",
+            energyLevel: t.energyLevel as "High" | "Medium" | "Low",
+            priority: t.priority,
+            dayOfWeek: t.dayOfWeek,
+            startHour: t.startHour,
+            startMinute: t.startMinute,
+            endHour: t.endHour,
+            endMinute: t.endMinute,
+          },
+        })
+      )
+    );
+
+    // 4. Generate Task instances for next N weeks
+    let totalInstances = 0;
+    for (const template of createdTemplates) {
+      const defaultRef = new Date().toISOString().split('T')[0]!;
+      const instances = generateInstancesForTemplate(template, WEEKS_TO_GENERATE, timezoneOffset || 0, referenceDate || defaultRef);
+      if (instances.length > 0) {
+        await tx.task.createMany({ data: instances as any });
+        totalInstances += instances.length;
+      }
+    }
+    
+    return { createdTemplates, totalInstances };
   });
 
-  // 3. Create new template tasks
-  const createdTemplates = await Promise.all(
-    tasks.map((t) =>
-      prisma.templateTask.create({
-        data: {
-          userId,
-          title: t.title,
-          type: t.type as "Anchor" | "Fluid",
-          energyLevel: t.energyLevel as "High" | "Medium" | "Low",
-          priority: t.priority,
-          dayOfWeek: t.dayOfWeek,
-          startHour: t.startHour,
-          startMinute: t.startMinute,
-          endHour: t.endHour,
-          endMinute: t.endMinute,
-        },
-      })
-    )
-  );
-
-  // 4. Generate Task instances for next N weeks
-  let totalInstances = 0;
-  for (const template of createdTemplates) {
-    const defaultRef = new Date().toISOString().split('T')[0]!;
-    const instances = generateInstancesForTemplate(template, WEEKS_TO_GENERATE, timezoneOffset || 0, referenceDate || defaultRef);
-    if (instances.length > 0) {
-      await prisma.task.createMany({ data: instances as any });
-      totalInstances += instances.length;
-    }
-  }
-
   res.status(201).json({
-    templateTasks: createdTemplates.length,
-    taskInstancesCreated: totalInstances,
+    templateTasks: result.createdTemplates.length,
+    taskInstancesCreated: result.totalInstances,
   });
 }
 

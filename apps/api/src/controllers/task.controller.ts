@@ -256,7 +256,7 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
       },
     });
 
-    for (const fTask of futureTasks) {
+    const updatePromises = futureTasks.map(fTask => {
       const newStart = new Date(fTask.startTime);
       if (startHour !== undefined) {
         if (timezoneOffset !== undefined) {
@@ -281,7 +281,7 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
         }
       }
 
-      await prisma.task.update({
+      return prisma.task.update({
         where: { id: fTask.id },
         data: {
           ...(title !== undefined && { title }),
@@ -292,6 +292,10 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
           ...(endTime !== undefined && { endTime: newEnd }),
         }
       });
+    });
+
+    if (updatePromises.length > 0) {
+      await prisma.$transaction(updatePromises);
     }
   }
 
