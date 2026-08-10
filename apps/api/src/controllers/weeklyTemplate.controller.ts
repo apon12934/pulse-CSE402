@@ -205,12 +205,21 @@ export async function deleteTemplateTask(req: Request, res: Response): Promise<v
   const existing = await prisma.templateTask.findFirst({ where: { id, userId } });
   if (!existing) throw new AppError(404, "Template task not found");
 
+  // Find all templates with the exact same title to group recurring days together
+  const relatedTemplates = await prisma.templateTask.findMany({
+    where: {
+      userId,
+      title: existing.title
+    }
+  });
+  const templateIds = relatedTemplates.map(t => t.id);
+
   const now = new Date();
   const { count } = await prisma.task.deleteMany({
-    where: { templateTaskId: id, startTime: { gte: now } },
+    where: { templateTaskId: { in: templateIds }, startTime: { gte: now } },
   });
 
-  await prisma.templateTask.delete({ where: { id } });
+  await prisma.templateTask.deleteMany({ where: { id: { in: templateIds } } });
 
   res.json({ deletedInstances: count });
 }

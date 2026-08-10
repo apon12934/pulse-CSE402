@@ -229,8 +229,17 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
     const endHour = localEndHour ?? (endTime ? new Date(endTime).getHours() : undefined);
     const endMinute = localEndMinute ?? (endTime ? new Date(endTime).getMinutes() : undefined);
 
-    await prisma.templateTask.update({
-      where: { id: existing.templateTaskId },
+    // Find all templates with the exact same title to group recurring days together
+    const relatedTemplates = await prisma.templateTask.findMany({
+      where: {
+        userId,
+        title: existing.title
+      }
+    });
+    const templateIds = relatedTemplates.map(t => t.id);
+
+    await prisma.templateTask.updateMany({
+      where: { id: { in: templateIds } },
       data: {
         ...(title !== undefined && { title }),
         ...(type !== undefined && { type: type as any }),
@@ -243,14 +252,14 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
       },
     });
 
-    // Update all future tasks belonging to this template
+    // Update all future tasks belonging to ANY of these templates
     // We only update tasks that haven't happened yet
     const now = new Date();
     
     // To properly shift times, we need to iterate over future tasks because they fall on different dates
     const futureTasks = await prisma.task.findMany({
       where: {
-        templateTaskId: existing.templateTaskId,
+        templateTaskId: { in: templateIds },
         userId,
         startTime: { gt: now },
         status: { notIn: ["Completed"] }, // Don't mess with completed tasks even if they are somehow in the future
