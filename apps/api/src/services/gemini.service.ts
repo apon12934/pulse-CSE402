@@ -194,13 +194,34 @@ async function callGemini<T>(systemPrompt: string, userMessage: string): Promise
   });
 
   const text = response.text ?? "";
-  const cleanedText = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
-  return JSON.parse(cleanedText) as T;
+  return parseAIJSON<T>(text);
 }
 
 /**
  * Generate an initial daily schedule from a list of anchors and fluid tasks.
  */
+function parseAIJSON<T>(text: string): T {
+  let cleaned = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.warn("[Pulse API] JSON parse failed, attempting fallback extraction...");
+    const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+      try {
+        return JSON.parse(arrayMatch[0]) as T;
+      } catch (e) {}
+    }
+    const objMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (objMatch) {
+      try {
+        return JSON.parse(objMatch[0]) as T;
+      } catch (e) {}
+    }
+    throw new Error("Failed to parse AI JSON output");
+  }
+}
+
 export async function generateSchedule(
   anchors: ScheduleItem[],
   fluidTasks: ScheduleItem[],
@@ -299,8 +320,7 @@ export async function converseSchedule(
 
   const text = response.text ?? "";
   try {
-    const cleaned = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
-    return JSON.parse(cleaned) as ParsedChatInput;
+    return parseAIJSON<ParsedChatInput>(text);
   } catch (e) {
     console.error("Failed to parse Gemini JSON output:", text);
     return {
@@ -333,8 +353,7 @@ export async function converseWeekly(
 
   const text = response.text ?? "";
   try {
-    const cleaned = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
-    return JSON.parse(cleaned) as ParsedChatInput;
+    return parseAIJSON<ParsedChatInput>(text);
   } catch (e) {
     console.error("Failed to parse weekly Gemini output:", text);
     return {

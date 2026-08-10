@@ -7,6 +7,7 @@ import { AiChatPanel } from '@/components/dashboard/AiChatPanel';
 import { usePathname } from 'next/navigation';
 import { useLayoutStore } from '@/store/layout';
 import { cn } from '@pulse/ui';
+import { Toaster } from 'react-hot-toast';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -28,6 +29,12 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <Toaster 
+        position="bottom-right" 
+        toastOptions={{ 
+          style: { background: '#171717', color: '#EDEDED', border: '1px solid #262626' } 
+        }} 
+      />
       <Header />
       <div className="flex flex-1 overflow-hidden relative">
         

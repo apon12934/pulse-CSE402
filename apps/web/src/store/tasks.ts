@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { apiGet, apiPatch, apiDelete as _apiDelete } from '@/lib/api';
 import { useAuthStore } from './auth';
+import toast from 'react-hot-toast';
 
 interface TaskStore {
   tasks: any[];
@@ -37,6 +38,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set({ tasks: res.tasks || [], isLoading: false });
     } catch (err: any) {
       console.error('Failed to fetch tasks:', err);
+      toast.error(err.message || 'Failed to fetch tasks');
       set({ error: err.message || 'Failed to fetch tasks', isLoading: false });
     }
   },
@@ -54,6 +56,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       }));
     } catch (err: any) {
       console.error('Failed to update task:', err);
+      toast.error(err.message || 'Failed to update task');
       set({ error: err.message || 'Failed to update task' });
       // Re-fetch to restore state
       if (localDate) {
@@ -72,6 +75,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       await apiDelete(`/api/tasks/${taskId}`);
     } catch (err: any) {
       console.error('Failed to delete task:', err);
+      toast.error(err.message || 'Failed to delete task');
       set({ error: err.message || 'Failed to delete task' });
     }
   },
@@ -89,6 +93,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       await apiDelete(`/api/tasks/${taskId}`);
     } catch (err: any) {
       console.error('Failed to delete task globally:', err);
+      toast.error(err.message || 'Failed to delete task globally');
       set({ error: err.message || 'Failed to delete task globally' });
     }
   },
@@ -105,6 +110,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       get().fetchTasks(date);
     } catch (err: any) {
       console.error('Failed to reset day:', err);
+      toast.error(err.message || 'Failed to reset day');
       set({ error: err.message || 'Failed to reset day' });
     }
   }
