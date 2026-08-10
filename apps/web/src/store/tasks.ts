@@ -51,7 +51,9 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       console.error('Failed to update task:', err);
       set({ error: err.message || 'Failed to update task' });
       // Re-fetch to restore state
-      await get().fetchTasks(date);
+      if (localDate) {
+        await get().fetchTasks(localDate);
+      }
     }
   },
 
