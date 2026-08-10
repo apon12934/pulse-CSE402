@@ -1,6 +1,6 @@
-<div align="center">
+﻿<div align="center">
 
-# ? PULSE
+# ⚡ PULSE
 
 ### *AI-Powered Personal Scheduling System*
 
@@ -19,59 +19,59 @@
 
 <br/>
 
-**[?? Live Demo](http://pulse-ai.ddns.net)** &nbsp;&nbsp;|&nbsp;&nbsp; **[?? Documentation](#features)** &nbsp;&nbsp;|&nbsp;&nbsp; **[?? Getting Started](#getting-started)**
+**[🌐 Live Demo](http://pulse-ai.ddns.net)** &nbsp;&nbsp;|&nbsp;&nbsp; **[📖 Documentation](#features)** &nbsp;&nbsp;|&nbsp;&nbsp; **[🚀 Getting Started](#getting-started)**
 
 </div>
 
 ---
 
-## ? Features
+## ✨ Features
 
-### ?? AI-Powered Scheduling Engine
-The core of Pulse is a **Domino Rescheduling** system powered by **Google Gemini**. When you resize or move a task, the AI cascades adjustments through the rest of your day � just like dominoes falling � ensuring your schedule is always logically consistent.
+### 🤖 AI-Powered Scheduling Engine
+The core of Pulse is a **Domino Rescheduling** system powered by **Google Gemini**. When you resize or move a task, the AI cascades adjustments through the rest of your day — just like dominoes falling — ensuring your schedule is always logically consistent.
 
-- **Domino Rescheduling** � Resize a task and the AI shifts everything else to fit
-- **AI Draft Mode** � Chat naturally with Gemini to generate a complete schedule from scratch
-- **Energy-Aware Optimization** � AI matches High/Medium/Low energy tasks to your cognitive peaks
-- **Timezone-Safe** � All AI operations happen in your local time, no UTC confusion
+- **Domino Rescheduling** — Resize a task and the AI shifts everything else to fit
+- **AI Draft Mode** — Chat naturally with Gemini to generate a complete schedule from scratch
+- **Energy-Aware Optimization** — AI matches High/Medium/Low energy tasks to your cognitive peaks
+- **Timezone-Safe** — All AI operations happen in your local time, no UTC confusion
 
-### ?? Dynamic Timeline
+### 📅 Dynamic Timeline
 A premium, pixel-perfect visual timeline where every task is a draggable, resizable block.
 
-- **Drag to Move** � Grab any task and drop it anywhere on the timeline
-- **Resize to Adjust** � Drag the bottom handle to extend or shrink task duration
-- **Live Recalculation** � AI recalculates remaining tasks instantly after every change
-- **Task Status Tracking** � Upcoming ? Running ? Completed ? Overdue lifecycle
+- **Drag to Move** — Grab any task and drop it anywhere on the timeline
+- **Resize to Adjust** — Drag the bottom handle to extend or shrink task duration
+- **Live Recalculation** — AI recalculates remaining tasks instantly after every change
+- **Task Status Tracking** — Upcoming → Running → Completed → Overdue lifecycle
 
-### ?? Weekly Template System
+### 🔁 Weekly Template System
 Build a recurring weekly routine that automatically generates tasks every week.
 
-- **Anchor Tasks** � Fixed-time immovable events (Classes, Meetings)
-- **Fluid Tasks** � Flexible routines that adapt to your anchors (Study, Gym)
-- **Global Edits** � Edit a task and propagate changes to all future same-weekday instances
-- **4-Week Auto-Generation** � Templates auto-expand 4 weeks into the future
+- **Anchor Tasks** — Fixed-time immovable events (Classes, Meetings)
+- **Fluid Tasks** — Flexible routines that adapt to your anchors (Study, Gym)
+- **Global Edits** — Edit a task and propagate changes to all future same-weekday instances
+- **4-Week Auto-Generation** — Templates auto-expand 4 weeks into the future
 
-### ?? Conversational AI Chat
+### 💬 Conversational AI Chat
 Talk to Pulse like a person. Describe your goals, constraints, and preferences in plain English.
 
-- **Persistent Chat History** � Conversations are saved and resumed across sessions
-- **Draft + Approve Workflow** � AI proposes a schedule; you review and approve before it saves
-- **Context-Aware** � The AI reads your existing calendar before suggesting changes
+- **Persistent Chat History** — Conversations are saved and resumed across sessions
+- **Draft + Approve Workflow** — AI proposes a schedule; you review and approve before it saves
+- **Context-Aware** — The AI reads your existing calendar before suggesting changes
 
-### ?? Authentication & Security
-- **JWT Authentication** � Stateless, secure token-based auth
-- **bcrypt Password Hashing** � Industry-standard salted password hashing
-- **Bring Your Own API Key** � Use your own Gemini API key for unlimited AI requests
-- **Multi-Tenant Isolation** � All data is strictly scoped per user
+### 🔒 Authentication & Security
+- **JWT Authentication** — Stateless, secure token-based auth
+- **bcrypt Password Hashing** — Industry-standard salted password hashing
+- **Bring Your Own API Key** — Use your own Gemini API key for unlimited AI requests
+- **Multi-Tenant Isolation** — All data is strictly scoped per user
 
-### ??? Profile & Personalization
-- **Avatar Upload** � Upload a custom profile picture via Cloudinary
-- **Rescheduling Strategy** � Choose between Balanced, Aggressive, or Gentle AI behavior
-- **Password Management** � Change password from the settings page securely
+### 🖼️ Profile & Personalization
+- **Avatar Upload** — Upload a custom profile picture via Cloudinary
+- **Rescheduling Strategy** — Choose between Balanced, Aggressive, or Gentle AI behavior
+- **Password Management** — Change password from the settings page securely
 
 ---
 
-## ??? Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -88,40 +88,40 @@ Talk to Pulse like a person. Describe your goals, constraints, and preferences i
 
 ---
 
-## ??? Project Structure
+## 🏗️ Project Structure
 
-`
+```
 pulse/
-+-- apps/
-�   +-- api/                  # Express backend
-�   �   +-- src/
-�   �   �   +-- controllers/  # Route handlers (schedule, tasks, auth, etc.)
-�   �   �   +-- services/     # Gemini AI service & scheduling logic
-�   �   �   +-- middlewares/  # Auth, error handling
-�   �   �   +-- routes/       # API route definitions
-�   �   �   +-- utils/        # Prisma client, Zod validators, errors
-�   �   +-- prisma/
-�   �       +-- schema.prisma # Database schema (Users, Tasks, Templates, Chat)
-�   +-- web/                  # Next.js frontend
-�       +-- src/
-�           +-- app/          # Next.js App Router pages
-�           �   +-- page.tsx          # Dashboard
-�           �   +-- timeline/         # Visual timeline editor
-�           �   +-- chat/             # Full-screen AI chat
-�           �   +-- settings/         # Account & preferences
-�           �   +-- config/           # Weekly template configuration
-�           �   +-- help/             # Onboarding & help guide
-�           +-- components/   # UI components (Timeline, Dashboard, Auth, Shell)
-�           +-- store/        # Zustand state (auth, tasks, layout)
-�           +-- lib/          # API client utilities
-+-- packages/
-    +-- ui/                   # Shared component library (Button, cn utils)
-    +-- types/                # Shared TypeScript types
-`
+├── apps/
+│   ├── api/                  # Express backend
+│   │   ├── src/
+│   │   │   ├── controllers/  # Route handlers (schedule, tasks, auth, etc.)
+│   │   │   ├── services/     # Gemini AI service & scheduling logic
+│   │   │   ├── middlewares/  # Auth, error handling
+│   │   │   ├── routes/       # API route definitions
+│   │   │   └── utils/        # Prisma client, Zod validators, errors
+│   │   └── prisma/
+│   │       └── schema.prisma # Database schema (Users, Tasks, Templates, Chat)
+│   └── web/                  # Next.js frontend
+│       └── src/
+│           ├── app/          # Next.js App Router pages
+│           │   ├── page.tsx          # Dashboard
+│           │   ├── timeline/         # Visual timeline editor
+│           │   ├── chat/             # Full-screen AI chat
+│           │   ├── settings/         # Account & preferences
+│           │   ├── config/           # Weekly template configuration
+│           │   └── help/             # Onboarding & help guide
+│           ├── components/   # UI components (Timeline, Dashboard, Auth, Shell)
+│           ├── store/        # Zustand state (auth, tasks, layout)
+│           └── lib/          # API client utilities
+└── packages/
+    ├── ui/                   # Shared component library (Button, cn utils)
+    └── types/                # Shared TypeScript types
+```
 
 ---
 
-## ?? Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -133,59 +133,59 @@ pulse/
 
 ### 1. Clone the repository
 
-`ash
+```bash
 git clone https://github.com/apon12934/pulse.git
 cd pulse
-`
+```
 
 ### 2. Install dependencies
 
-`ash
+```bash
 npm install
-`
+```
 
 ### 3. Configure environment variables
 
 Create pps/api/.env:
 
-`env
-DATABASE_URL="mysql://user:password@host:4000/pulse?ssl={"rejectUnauthorized":true}"
+```env
+DATABASE_URL="mysql://user:password@host:4000/pulse"
 JWT_SECRET="your-super-secret-jwt-key"
 GEMINI_API_KEY="your-gemini-api-key"
 CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-cloudinary-api-key"
 CLOUDINARY_API_SECRET="your-cloudinary-secret"
 PORT=4000
-`
+```
 
 Create pps/web/.env.local:
 
-`env
+```env
 NEXT_PUBLIC_API_URL="http://localhost:4000"
-`
+```
 
 ### 4. Setup the database
 
-`ash
+```bash
 cd apps/api
 npx prisma generate
 npx prisma db push
-`
+```
 
 ### 5. Run the development servers
 
-`ash
-# From root � starts both API and Web concurrently
+```bash
+# From root — starts both API and Web concurrently
 npm run dev
-`
+```
 
-- **Frontend:** [http://localhost:3000](http://localhost:3000)
-- **Backend API:** [http://localhost:4000](http://localhost:4000)
-- **Health Check:** [http://localhost:4000/health](http://localhost:4000/health)
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:4000
+- **Health Check:** http://localhost:4000/health
 
 ---
 
-## ??? API Reference
+## 🗺️ API Reference
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -212,53 +212,42 @@ npm run dev
 
 ---
 
-## ??? Data Models
+## 🗄️ Data Models
 
-`
+```
 User
- +-- Task[]           (daily scheduled tasks)
- +-- TemplateTask[]   (recurring weekly routine)
- +-- TaskBlock[]      (grouped task composites)
- +-- DailyRoutine[]   (daily completion snapshots)
- +-- ChatMessage[]    (AI conversation history)
-`
+ ├── Task[]           (daily scheduled tasks)
+ ├── TemplateTask[]   (recurring weekly routine)
+ ├── TaskBlock[]      (grouped task composites)
+ ├── DailyRoutine[]   (daily completion snapshots)
+ └── ChatMessage[]    (AI conversation history)
+```
 
 **Task Types:**
-- Anchor � Fixed-time tasks that the AI never moves
-- Fluid � Flexible tasks that the AI can shift to optimize the day
+- Anchor — Fixed-time tasks that the AI never moves
+- Fluid — Flexible tasks that the AI can shift to optimize the day
 
 **Task Status Flow:**
-`
-Upcoming ? Running ? Completed
-                  ? Overdue
-`
+```
+Upcoming → Running → Completed
+                  ↘ Overdue
+```
 
 ---
 
-## ?? Screenshots
+## 🔧 Development Scripts
 
-> **Dashboard** � Active task view with AI chat panel  
-> **Timeline** � Drag-and-drop visual timeline with real-time AI rescheduling  
-> **Config** � Weekly template builder with global edit propagation  
-> **Help** � Onboarding guide for new users  
-
-*(Screenshots available at [pulse-ai.ddns.net](http://pulse-ai.ddns.net))*
-
----
-
-## ?? Development Scripts
-
-`ash
+```bash
 npm run dev          # Start both API and Web in watch mode
 npm run dev:web      # Start only the Next.js frontend
 npm run dev:api      # Start only the Express backend
 npm run build        # Production build for both apps
 npm run lint         # Lint both apps
-`
+```
 
 ---
 
-## ?? Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create your feature branch: git checkout -b feat/amazing-feature
@@ -270,8 +259,8 @@ npm run lint         # Lint both apps
 
 <div align="center">
 
-Built with ? by [Apon](https://github.com/apon12934)
+Built with ⚡ by [Apon](https://github.com/apon12934)
 
-*Pulse � Because your day should adapt to you, not the other way around.*
+*Pulse — Because your day should adapt to you, not the other way around.*
 
 </div>
