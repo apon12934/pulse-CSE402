@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/apon12934/pulse/main/apps/web/public/logo.svg" alt="Pulse Logo" width="500" />
+  <img src="https://raw.githubusercontent.com/apon12934/pulse/main/apps/web/public/logo.svg" alt="Pulse Logo" width="280" />
   <br/><br/>
   <p><em>AI-Powered Personal Scheduling System</em></p>
   <br/>
