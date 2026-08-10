@@ -257,7 +257,10 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
       const newStart = new Date(fTask.startTime);
       if (startHour !== undefined) {
         if (timezoneOffset !== undefined) {
-          newStart.setUTCHours(startHour, (startMinute ?? 0) + timezoneOffset, 0, 0);
+          const localMs = fTask.startTime.getTime() - (timezoneOffset * 60000);
+          const localDate = new Date(localMs);
+          localDate.setUTCHours(startHour, startMinute ?? 0, 0, 0);
+          newStart.setTime(localDate.getTime() + (timezoneOffset * 60000));
         } else {
           newStart.setHours(startHour, startMinute ?? 0, 0, 0);
         }
@@ -266,7 +269,10 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
       const newEnd = new Date(fTask.endTime);
       if (endHour !== undefined) {
         if (timezoneOffset !== undefined) {
-          newEnd.setUTCHours(endHour, (endMinute ?? 0) + timezoneOffset, 0, 0);
+          const localMs = fTask.endTime.getTime() - (timezoneOffset * 60000);
+          const localDate = new Date(localMs);
+          localDate.setUTCHours(endHour, endMinute ?? 0, 0, 0);
+          newEnd.setTime(localDate.getTime() + (timezoneOffset * 60000));
         } else {
           newEnd.setHours(endHour, endMinute ?? 0, 0, 0);
         }

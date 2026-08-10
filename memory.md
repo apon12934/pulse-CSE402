@@ -122,3 +122,7 @@
 *   **Web Assets:** Purged default Next.js icons and integrated native Next.js App Router metadata files (`icon.png`, `apple-icon.png`, `opengraph-image.png`).
 *   **Lexicon Update:** Rebranded internal AI mechanics from "Gemini Core" to "Pulse Assistant (Gemini)". 
 *   **Dashboard Cleanup:** Renamed UI components for clarity ("UPCOMING PIPELINE" → "UPCOMING TASKS", "NOW PLAYING" → "CURRENT FOCUS"). Improved Upcoming Tasks time layout to a streamlined single-line horizontal format with electric yellow text.
+
+**[2026-08-10] [Antigravity / Gemini 3.1 Pro] Task Editing & Timezone Fix**
+*   **Global Edit Synchronization:** Fixed a critical bug where checking "Apply to all future weeks" on a task update would accidentally shift future instances to the wrong day if the local time crossed the UTC midnight boundary (e.g., tasks before 6:00 AM UTC+6 were shifted to the previous day).
+*   **Algorithm Update:** Rewrote the time-shifting logic in `task.controller.ts` to explicitly preserve the local date boundary by calculating the new time based on the localized representation before translating back to UTC.

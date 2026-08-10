@@ -30,7 +30,17 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     let errorMsg = 'An error occurred';
     try {
       const data = await response.json();
-      errorMsg = data.message || errorMsg;
+      if (data.message === 'Validation failed' && data.details) {
+        // Extract the first validation error message from the details object
+        const firstField = Object.keys(data.details)[0];
+        if (firstField && Array.isArray(data.details[firstField]) && data.details[firstField].length > 0) {
+          errorMsg = data.details[firstField][0];
+        } else {
+          errorMsg = data.message;
+        }
+      } else {
+        errorMsg = data.message || errorMsg;
+      }
     } catch {
       // Ignored
     }
