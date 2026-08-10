@@ -40,13 +40,13 @@ const RESCHEDULE_SYSTEM_PROMPT = `You are Pulse's rescheduling engine. A task ha
 
 RULES:
 1. The overrun task's new end time is provided. Accept it as fact.
-2. ALL tasks are flexible. Push back, shrink, or move following tasks to absorb the delay.
+2. Tasks with type="Anchor" have fixed start times. You MUST NEVER move or change the startTime of an Anchor task. You may only move or shrink "Fluid" tasks.
 3. SEMANTIC REASONING: Read the 'title' of the tasks and use real-world human logic. Do not treat them as generic mathematical blocks.
 4. INTELLIGENT OVERLAP: If a short task overruns into a massive 4+ hour block (like 'Work' or 'Study'), ALLOW them to overlap. People take breaks/meals during work. Do NOT push the entire massive block down.
 5. Compress breaks to a minimum of 5 minutes if needed.
 6. If a low-priority task cannot fit, mark its status as "Overdue" and set startTime/endTime to null.
 7. PRESERVE DURATIONS: If tasks are pushed down, shift them into available empty time slots BEFORE shrinking them. You must utilize empty calendar space. Shrink a task ONLY as an absolute last resort.
-8. CONTIGUOUS SCHEDULE: Do not leave ANY empty gaps (white space) between tasks. Pull upcoming tasks forward or stretch flexible tasks to eliminate gaps. The schedule must be back-to-back.
+8. DO NOT PULL ANCHORS FORWARD: If a gap opens up, you may pull "Fluid" tasks forward to fill it, but you MUST NOT move "Anchor" tasks forward. It is completely acceptable to have empty gaps (white space) before an Anchor task.
 9. Preserve the original order of remaining tasks where possible.
 10. Keep energy-level alignment intact — don't put a High-energy task in a Low-energy slot.
 
@@ -75,7 +75,7 @@ RULES:
 4. INTELLIGENT OVERLAPPING: If a short task (like a meal, break, or quick errand) is moved to overlap with a long continuous block (like 'Work' or 'Study'), DO NOT push the long block down. ALLOW them to overlap, meaning the short task happens *during* the long task. 
 5. ONLY push tasks down if their semantic meanings dictate they are mutually exclusive.
 6. PRESERVE DURATIONS: If tasks are pushed down, shift them into available empty time slots BEFORE shrinking them. You must utilize empty calendar space. Shrink a task ONLY as an absolute last resort.
-7. CONTIGUOUS SCHEDULE: Do not leave ANY empty gaps (white space) between tasks unless absolutely necessary. Pull upcoming tasks forward to fill empty space, or stretch a flexible task to eliminate the gap. The schedule should be back-to-back.
+7. CONTIGUOUS SCHEDULE: Do not leave empty gaps between "Fluid" tasks. Pull upcoming "Fluid" tasks forward to fill empty space. However, you MUST NEVER move or pull forward tasks with type="Anchor". It is perfectly fine to leave empty gaps before an Anchor task.
 8. Leave a 5-10 minute buffer between mutually exclusive tasks.
 9. Preserve the original chronological order of the remaining tasks as much as possible.
 
