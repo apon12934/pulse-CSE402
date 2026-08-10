@@ -142,7 +142,7 @@ export default function TimelinePage() {
       )}
       {/* ── Header Strip ──────────────────────── */}
       <div className="flex items-center justify-between shrink-0">
-        <div>
+        <div className="pl-16">
           <h1 className="text-[28px] font-semibold text-white font-sans leading-tight">
             Timeline Manager
           </h1>
