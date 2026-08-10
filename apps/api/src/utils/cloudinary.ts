@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from 'cloudinary';
-// @ts-ignore
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
 
@@ -13,7 +12,7 @@ cloudinary.config({
 // Configure Multer Storage Engine for Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (_req: any, file: any) => {
+  params: async (_req, file) => {
     return {
       folder: 'pulse_uploads',
       format: 'png', // auto convert to png or use auto
