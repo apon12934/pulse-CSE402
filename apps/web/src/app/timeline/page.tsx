@@ -23,11 +23,12 @@ function formatHour(h: number): string {
 
 /* ─── Page Component ───────────────────────────── */
 export default function TimelinePage() {
-  const { tasks, fetchTasks, deleteTask, clearDay, error: storeError } = useTaskStore();
+  const { tasks, fetchTasks, deleteTask, deleteTaskGlobally, clearDay, error: storeError } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [now, setNow] = useState(new Date());
   const [localError, setLocalError] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
+  const [deletingTask, setDeletingTask] = useState<any | null>(null);
   
   const { token } = useAuthStore();
 
@@ -99,27 +100,19 @@ export default function TimelinePage() {
   // Dynamic Hour Range Calculation
   const [isReordering, setIsReordering] = useState(false);
 
-  const handleMove = async (block: any, newStartTimeISO: string) => {
-    setIsReordering(true);
-    try {
-      const dateStr = currentDate.toISOString().split('T')[0];
-      await apiPost('/api/schedule/move', { 
-        taskId: block.id, 
-        newStartTime: newStartTimeISO,
-        date: dateStr 
-      });
-      await fetchTasks(currentDate);
-    } catch (err: any) {
-      console.warn('Failed to move task:', err);
-      const msg = err.message || 'Failed to move task';
-      if (msg.includes('429') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED')) {
-        setLocalError('AI Quota Exceeded. Please try again in a minute.');
-      } else {
-        setLocalError('Failed to move task. Please try again.');
-      }
-      throw err; // Rethrow so TimelineBlock can snap back to initial position
-    } finally {
-      setIsReordering(false);
+  const handleTaskMove = async (block: any, newStartTimeISO: string) => {
+    // Optimistic snap is handled inside TimelineBlock
+    // If it fails, TimelineBlock will revert its local state
+    const { apiPatch } = await import('@/lib/api');
+    await apiPatch(`/api/schedule/reschedule`, { taskId: block.id, newStartTime: newStartTimeISO });
+    fetchTasks(currentDate);
+  };
+
+  const handleDeleteClick = (block: any) => {
+    if (block.templateTaskId) {
+      setDeletingTask(block);
+    } else {
+      deleteTask(block.id);
     }
   };
 
@@ -389,11 +382,14 @@ export default function TimelinePage() {
                   hourStart={hourStart}
                   hourHeight={HOUR_HEIGHT}
                   totalHeight={totalHeight}
-                  onDelete={deleteTask}
-                  onEdit={setEditingTask}
+                  onDelete={handleDeleteClick}
+                  onEdit={(block) => setEditingTask(block)}
                   onRefresh={() => fetchTasks(currentDate)}
-                  onMove={handleMove}
-                  onError={(msg) => setLocalError(msg)}
+                  onMove={handleTaskMove}
+                  onError={(msg) => {
+                    setLocalError(msg);
+                    setTimeout(() => setLocalError(null), 5000);
+                  }}
                   baseZIndex={baseZIndex}
                   currentDate={currentDate}
                 />
@@ -421,6 +417,42 @@ export default function TimelinePage() {
         onClose={() => setEditingTask(null)}
         currentDate={currentDate}
       />
+
+      <Modal isOpen={!!deletingTask} onClose={() => setDeletingTask(null)} title="DELETE TASK">
+        <div className="flex flex-col gap-5">
+          <p className="text-sm text-gray-300 font-mono leading-relaxed">
+            This task is part of your recurring weekly routine. Do you want to delete it just for today, or remove it from all future weeks as well?
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button 
+              variant="primary" 
+              onClick={() => {
+                if (deletingTask) deleteTask(deletingTask.id);
+                setDeletingTask(null);
+              }}
+            >
+              JUST THIS DAY
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-red-500 border border-red-500/30 hover:bg-red-500/10 hover:border-red-500"
+              onClick={() => {
+                if (deletingTask) deleteTaskGlobally(deletingTask.id, deletingTask.templateTaskId);
+                setDeletingTask(null);
+              }}
+            >
+              ALL FUTURE WEEKS (GLOBALLY)
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="mt-2 text-[#888]"
+              onClick={() => setDeletingTask(null)}
+            >
+              CANCEL
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

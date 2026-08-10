@@ -44,7 +44,7 @@ interface TimelineBlockProps {
   hourStart: number;
   hourHeight: number;
   totalHeight: number;
-  onDelete: (id: string) => void;
+  onDelete: (block: any) => void;
   onEdit: (block: any) => void;
   onRefresh: () => void;
   onMove: (block: any, newStartTimeISO: string) => Promise<void>;
@@ -230,7 +230,7 @@ export function TimelineBlock({
               <Pencil className="w-3 h-3" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onDelete(block.id); }}
+              onClick={(e) => { e.stopPropagation(); onDelete(block); }}
               className="text-[#555] hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
               title="Delete"
             >
