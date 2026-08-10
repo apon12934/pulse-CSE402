@@ -134,7 +134,7 @@ export default function TimelinePage() {
   const error = storeError || localError;
 
   return (
-    <div className="flex flex-col h-full gap-6 relative">
+    <div className="flex flex-col h-full gap-6 relative pt-8 pr-6">
       {error && (
         <div className="absolute top-0 left-0 w-full bg-[#FF4444] text-white font-mono text-[10px] uppercase px-4 py-2 text-center tracking-widest z-50">
           SYS_ERR: {error}
