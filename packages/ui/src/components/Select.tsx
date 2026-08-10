@@ -29,8 +29,8 @@ export const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     const options = React.Children.toArray(children)
       .filter((child): child is React.ReactElement => React.isValidElement(child) && child.type === 'option')
       .map(child => ({
-        value: (child as React.ReactElement).props.value,
-        label: (child as React.ReactElement).props.children
+        value: (child.props as any).value,
+        label: (child.props as any).children
       }));
 
     const selectedOption = options.find(opt => opt.value === value);
