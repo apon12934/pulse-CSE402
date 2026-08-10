@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutGrid, FileText, BarChart3, Globe, SlidersHorizontal, Settings } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart3, Globe, SlidersHorizontal, Settings, HelpCircle } from 'lucide-react'
 import { cn, Button } from '@pulse/ui'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -9,6 +9,7 @@ import { useLayoutStore } from '@/store/layout'
 const NAV_ITEMS = [
   { name: 'DASHBOARD', icon: LayoutGrid, path: '/' },
   { name: 'TIMELINE', icon: FileText, path: '/timeline' },
+  { name: 'HELP', icon: HelpCircle, path: '/help' },
   { name: 'SETTINGS', icon: Settings, path: '/settings' },
 ]
 
