@@ -530,17 +530,6 @@ export async function resetDay(req: Request, res: Response): Promise<void> {
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
-  // 1. Delete all current tasks for that date
-  await prisma.task.deleteMany({
-    where: {
-      userId,
-      AND: [
-        { startTime: { lt: dayEnd } },
-        { endTime: { gt: dayStart } }
-      ],
-    },
-  });
-
   // 2. Fetch template tasks for this day of the week
   const dayOfWeek = dayStartUTC.getUTCDay();
   const templates = await prisma.templateTask.findMany({
@@ -569,7 +558,29 @@ export async function resetDay(req: Request, res: Response): Promise<void> {
       };
     });
 
-    await prisma.task.createMany({ data: instancesToCreate as any });
+    await prisma.$transaction([
+      prisma.task.deleteMany({
+        where: {
+          userId,
+          AND: [
+            { startTime: { lt: dayEnd } },
+            { endTime: { gt: dayStart } }
+          ],
+        },
+      }),
+      prisma.task.createMany({ data: instancesToCreate as any })
+    ]);
+  } else {
+    // If no templates, just delete the tasks
+    await prisma.task.deleteMany({
+      where: {
+        userId,
+        AND: [
+          { startTime: { lt: dayEnd } },
+          { endTime: { gt: dayStart } }
+        ],
+      },
+    });
   }
 
   res.json({ success: true, restored: templates.length });
