@@ -37,6 +37,7 @@ export function AiChatPanel() {
         console.error('Failed to load chat history:', err);
       } finally {
         setIsLoadingHistory(false);
+        isProcessingRef.current = false;
       }
     }
     loadHistory();
@@ -60,6 +61,7 @@ export function AiChatPanel() {
   };
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessingRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -70,7 +72,9 @@ export function AiChatPanel() {
   }, [messages, isProcessing]);
 
   const handleSend = async () => {
-    if (!input.trim() || isProcessing) return;
+    if (!input.trim() || isProcessingRef.current) return;
+    isProcessingRef.current = true;
+    setIsProcessing(true);
 
     const userMessage = {
       id: Date.now().toString(),
@@ -224,12 +228,13 @@ export function AiChatPanel() {
                     </div>
                   )}
 
-                  {msg.status === 'weekly_draft' && msg.tasks && msg.tasks.length > 0 && (
+                  {msg.status === 'weekly_draft' && (msg.weeklyTasks || msg.tasks) && (msg.weeklyTasks || msg.tasks).length > 0 && (
                     <div className="mt-3 flex flex-col gap-2 border-t border-[#262626] pt-3">
                       <div className="text-[10px] font-mono text-[#FFFF00] uppercase tracking-wider mb-2">Proposed Weekly Template:</div>
                       {(() => {
                         const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-                        const grouped = msg.tasks.reduce((acc: any, t: any) => {
+                        const list = msg.weeklyTasks || msg.tasks;
+                        const grouped = list.reduce((acc: any, t: any) => {
                           if (!acc[t.dayOfWeek]) acc[t.dayOfWeek] = [];
                           acc[t.dayOfWeek].push(t);
                           return acc;
